@@ -21,6 +21,7 @@
   "shortcuts": [
     { "name": "Mi día", "short_name": "Mi día", "url": "./index.html#dia", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
     { "name": "Control y pendientes", "short_name": "Control", "url": "./index.html#control", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
-    { "name": "Vacantes", "short_name": "Vacantes", "url": "./index.html#vacantes", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] }
+    { "name": "Vacantes", "short_name": "Vacantes", "url": "./index.html#vacantes", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Repaso de entrevista", "short_name": "Repaso", "url": "./index.html#control/repaso", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] }
   ]
 }

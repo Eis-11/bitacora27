@@ -2,11 +2,12 @@
  * Archivos propios: primero red (para ver vacantes y cambios nuevos), si no hay red usa la copia guardada.
  * Tailwind y fuentes: usa la copia guardada y la actualiza en segundo plano.
  * Cambia VERSION cuando publiques cambios grandes para limpiar la caché vieja. */
-const VERSION = "b27-v1";
+const VERSION = "b27-v2";
 const CORE = [
   "./", "./index.html", "./manifest.webmanifest",
   "./css/app.css",
   "./js/ui.js", "./js/midia.js", "./js/extras.js", "./js/focus.js", "./js/control.js", "./js/pwa.js",
+  "./js/respaldo.js", "./js/crm.js", "./js/resid.js", "./js/cards.js", "./js/buscar.js", "./data/tarjetas.js",
   "./data/vacantes.js", "./data/ruta.js", "./data/certs.js", "./data/plan_diario.js",
   "./icons/icon-192.png", "./icons/icon-512.png", "./icons/apple-touch-icon.png", "./icons/favicon-32.png"
 ];

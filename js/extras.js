@@ -510,14 +510,11 @@
       certState[id] = { ...(certState[id] || {}), link: e.target.value.trim() };
       save(LS.CERTS, certState); rerender();
     }));
-    document.getElementById("rutaExport").addEventListener("click", () => {
-      const blob = new Blob([JSON.stringify({ ruta: prog, vacantes: vacState, notas: vacNotes, certs: certState, control: window.CONTROL ? window.CONTROL.exportData() : null, midia: window.MIDIA ? window.MIDIA.exportData() : null }, null, 2)], { type: "application/json" });
-      const a = Object.assign(document.createElement("a"), { href: URL.createObjectURL(blob), download: "respaldo_ruta_vacantes.json" });
-      a.click(); URL.revokeObjectURL(a.href);
-    });
+    document.getElementById("rutaExport").addEventListener("click", () => window.APP_BACKUP.share());
     document.getElementById("rutaImport").addEventListener("change", async (e) => {
       try {
         const d = JSON.parse(await e.target.files[0].text());
+        if (window.APP_BACKUP && window.APP_BACKUP.restore(d)) return;
         if (d.ruta && typeof d.ruta === "object") prog = Object.assign(prog, d.ruta);
         if (d.vacantes && typeof d.vacantes === "object") vacState = Object.assign(vacState, d.vacantes);
         if (d.notas && typeof d.notas === "object") vacNotes = Object.assign(vacNotes, d.notas);
@@ -536,7 +533,8 @@
     document.querySelectorAll(".tab-btn").forEach((b) => b.addEventListener("click", () => setTab(b.dataset.tab)));
     renderVacantesShell();
     renderRuta();
-    const fromHash = location.hash.replace("#", "");
+    const [fromHash, sub] = location.hash.replace("#", "").split("/");
+    if (fromHash === "control" && sub) setTimeout(() => window.CONTROL?.show(sub), 0);
     setTab(["dia", "empresas", "vacantes", "ruta", "control"].includes(fromHash) ? fromHash : load(LS.TAB, "dia"));
     updateRail();
     // Marca como vistas las vacantes actuales (las que lleguen después aparecerán como NUEVAS).

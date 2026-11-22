@@ -28,6 +28,10 @@
   let tareas = load(LS.TAREAS, []);
   let top3 = load(LS.TOP3, {});
   let catFilter = "all";
+  let pane = load("dt2027_ctl_pane", "hoy");
+  let weekOff = 0;
+  const PANES = [["hoy", "Hoy"], ["pend", "Pendientes"], ["post", "Postulaciones"], ["resid", "Residencia"], ["repaso", "Repaso"], ["prog", "Progreso"]];
+  const monday = (s) => UI.d.monday(s);
 
   /* ---------- Cálculos ---------- */
   function todayBlocks(date = today()) {
@@ -50,6 +54,7 @@
       const date = addDays(t, i);
       (M()?.getDay(date)?.blocks || []).filter((b) => b.key === "cert" && /examen|agenda/i.test(b.label)).forEach((b) => out.push({ date, t: b.label.replace(/^Certificación · /, ""), sub: "Bloque CERT en Mi día", tipo: "Certificación", cls: "chip-ok" }));
     }
+    (window.CRM?.followUps() || []).filter((x) => diff(t, x.date) <= 21).forEach((x) => out.push(x));
     tareas.filter((x) => !x.ok && x.due && diff(t, x.due) <= 21).forEach((x) => out.push({ date: x.due, t: x.t, sub: x.cat, tipo: "Pendiente", cls: PRIO[x.pr]?.cls || "" }));
     return out.sort((a, b) => a.date.localeCompare(b.date));
   }
@@ -66,20 +71,61 @@
     const overdue = tareas.filter((x) => !x.ok && x.due && x.due < t).length;
     const mine = top3[t] || [{}, {}, {}];
 
+    const badge = {
+      pend: overdue || tareas.filter((x) => !x.ok).length || "",
+      post: window.CRM ? window.CRM.stats().due || "" : "",
+      repaso: window.CARDS ? window.CARDS.stats().due || "" : ""
+    };
+    let body = "";
+    if (pane === "pend") body = pendientesHtml();
+    else if (pane === "post") body = window.CRM ? window.CRM.html() : "";
+    else if (pane === "resid") body = window.RESID ? window.RESID.html() : "";
+    else if (pane === "repaso") body = window.CARDS ? window.CARDS.html() : "";
+    else if (pane === "prog") body = `${semanaHtml()}${heatHtml()}<section class="grid gap-5 lg:grid-cols-3">${focusHtml()}${embudoHtml()}${certsHtml()}</section>`;
+    else body = hoyHtml({ t, day, next, pct, fmin, total, overdue, mine });
+
     el.innerHTML = `
       ${UI.head("05", "Control", `Centro de <em>control</em>`,
-        `Decide tus 3 prioridades, enfócate un bloque a la vez y anota todo lo que no sea del plan en <strong>Pendientes</strong> para sacarlo de tu cabeza.`,
+        `Decide tus 3 prioridades, enfócate un bloque a la vez y saca de tu cabeza todo lo que no sea del plan: pendientes, postulaciones y horas quedan registrados aquí.`,
         `<button type="button" id="ctlKeys" class="btn btn-sm btn-ghost" title="Atajos de teclado">⌨ Atajos</button>`)}
 
       <div id="ctlKeysBox" class="panel-flat p-4 text-sm hidden">
         <p class="eyebrow mb-2">Atajos (fuera de campos de texto)</p>
         <div class="grid gap-1.5 sm:grid-cols-2 mono text-[12px]">
           <span><kbd>1</kbd>–<kbd>5</kbd> cambiar de pestaña</span>
+          <span><kbd>Ctrl</kbd>+<kbd>K</kbd> o <kbd>/</kbd> buscar en toda la app</span>
           <span><kbd>E</kbd> enfocar el siguiente bloque de hoy</span>
           <span><kbd>N</kbd> nuevo pendiente</span>
-          <span><kbd>Esc</kbd> minimizar modo enfoque · <kbd>Espacio</kbd> pausa</span>
+          <span><kbd>Espacio</kbd> · <kbd>1</kbd> · <kbd>2</kbd> voltear / fallé / acerté (Repaso)</span>
+          <span><kbd>Esc</kbd> minimizar modo enfoque</span>
         </div>
       </div>
+
+      <nav class="ctl-tabs" role="tablist" aria-label="Secciones de Control">${PANES.map(([k, l]) => `<button type="button" role="tab" data-ctl-pane="${k}" aria-selected="${k === pane}">${l}${badge[k] ? `<span class="ctl-badge ${k === "pend" && overdue ? "bad" : ""}">${badge[k]}</span>` : ""}</button>`).join("")}</nav>
+
+      <div id="ctlBody" class="space-y-6">${body}</div>`;
+    bind(el);
+    const rr = () => rerender();
+    if (pane === "post") window.CRM?.bind(el, rr);
+    if (pane === "resid") window.RESID?.bind(el, rr);
+    if (pane === "repaso") window.CARDS?.bind(el, rr);
+  }
+
+  function hoyHtml({ t, day, next, pct, fmin, total, overdue, mine }) {
+    const bk = window.APP_BACKUP?.daysSince();
+    const hasData = Object.keys(load(LS.DIA, {})).length || tareas.length;
+    const metasW = load("dt2027_metas", {})[monday(t)] || [];
+    const crm = window.CRM?.stats(), cards = window.CARDS?.stats(), res = window.RESID?.stats();
+    const r = M().planRange();
+    const enRes = t >= r.inicioRes && t <= r.finRes;
+    const minimo = M().isMinimo?.(t);
+    const dRes = UI.d.diff(t, r.inicioRes);
+    return `
+      ${hasData && (bk === null || bk >= 7) ? `
+      <section class="panel p-4 sm:p-5 flex flex-wrap items-center gap-3" style="border-color:var(--warn)">
+        <p class="text-sm flex-1 min-w-[220px]"><span class="eyebrow block mb-1" style="color:var(--warn)">Respaldo</span>${bk === null ? "Nunca has respaldado tu progreso." : `Tu último respaldo fue hace ${bk} días.`} Si borras el navegador o cambias de teléfono, lo pierdes.</p>
+        <button type="button" data-backup class="btn btn-primary">Respaldar ahora</button>
+      </section>` : ""}
 
       <section class="grid gap-5 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)]">
         <div class="next-step p-6 sm:p-7">
@@ -97,11 +143,12 @@
           </ol>
           ${!mine.some((x) => x && x.t) && next ? `<button type="button" id="t3fill" class="btn btn-sm mt-3">Sugerir desde el plan de hoy</button>` : ""}
           <div class="mt-6 pt-5 border-t hair flex flex-wrap items-center justify-between gap-3">
-            ${next ? `<div class="min-w-0"><p class="eyebrow">Siguiente bloque del plan</p><p class="font-semibold mt-1">${esc(next.label)} <span class="mono text-[11px] text-slate-400">${next.min ? next.min + " min" : ""}</span></p></div>
-              <div class="flex gap-2"><button type="button" data-ctl-focus="${esc(next.key)}" class="btn btn-accent">▶ Enfocar ahora</button><button type="button" data-go-dia class="btn">Ver Mi día</button></div>`
+            ${next ? `<div class="min-w-0"><p class="eyebrow">Siguiente bloque del plan${minimo ? " · plan mínimo" : ""}</p><p class="font-semibold mt-1">${esc(next.label)} <span class="mono text-[11px] text-slate-400">${next.min ? next.min + " min" : ""}</span></p></div>
+              <div class="flex flex-wrap gap-2"><button type="button" data-ctl-focus="${esc(next.key)}" class="btn btn-accent">▶ Enfocar ahora</button><button type="button" data-go-dia class="btn">Ver Mi día</button></div>`
               : `<p class="text-sm text-slate-500">${day ? "Terminaste todos los bloques de hoy. 👏" : "Hoy no hay plan: descansa o adelanta un pendiente."}</p>
               <button type="button" id="freeFocus" class="btn">▶ Bloque libre de 25 min</button>`}
           </div>
+          ${day && day.kind !== "sun" ? `<button type="button" id="ctlMin" class="btn btn-sm btn-ghost mt-3">${minimo ? "↺ Volver al plan completo" : "Día difícil: hoy solo tengo 30 min"}</button>` : ""}
         </div>
 
         <div class="panel p-6 grid grid-cols-2 gap-6 content-start">
@@ -113,19 +160,128 @@
         </div>
       </section>
 
-      <section class="grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
-        ${pendientesHtml()}
-        ${proximosHtml()}
+      <section class="grid gap-3 sm:grid-cols-3">
+        <button type="button" data-ctl-pane="post" class="panel-flat p-4 text-left hover:shadow-card-hover">
+          <p class="eyebrow">Seguimientos</p><p class="font-display text-3xl mt-1 ${crm?.due ? "accent" : ""}">${crm?.due || 0}</p><p class="text-xs text-slate-500">${crm?.due ? "toca escribirles hoy" : `${crm?.n || 0} contactos · ${crm?.week || 0} esta semana`}</p></button>
+        <button type="button" data-ctl-pane="repaso" class="panel-flat p-4 text-left hover:shadow-card-hover">
+          <p class="eyebrow">Repaso de entrevista</p><p class="font-display text-3xl mt-1">${cards?.today || 0}<span class="text-lg text-slate-400">/${cards?.goal || 10}</span></p><p class="text-xs text-slate-500">${cards?.due || 0} tarjetas esperando</p></button>
+        <button type="button" data-ctl-pane="resid" class="panel-flat p-4 text-left hover:shadow-card-hover">
+          <p class="eyebrow">Residencia</p><p class="font-display text-3xl mt-1">${enRes ? `${Math.round(res?.total || 0)}<span class="text-lg text-slate-400">/${res?.meta || 500} h</span>` : dRes > 0 ? `${dRes} <span class="text-lg text-slate-400">días</span>` : "—"}</p><p class="text-xs text-slate-500">${enRes ? "registra tus horas de hoy" : "para empezar · horas y logros"}</p></button>
       </section>
 
-      ${heatHtml()}
-
-      <section class="grid gap-5 lg:grid-cols-3">
-        ${focusHtml()}
-        ${embudoHtml()}
-        ${certsHtml()}
+      <section class="grid gap-5 xl:grid-cols-2">
+        ${proximosHtml()}
+        <div class="space-y-5">
+          ${metasW.some((x) => x && x.t) ? `<div class="panel p-5 sm:p-6"><h3 class="sec-title"><span class="eyebrow">Metas de esta semana</span><button type="button" data-ctl-pane="prog" class="text-sm accent hover:underline">Editar →</button></h3><ul class="mt-3">${metasW.map((x, i) => x && x.t ? `<li class="py-2 border-t hair first:border-t-0"><label class="check text-sm"><input type="checkbox" data-meta-ok="${monday(t)}|${i}" ${x.ok ? "checked" : ""} /><span class="${x.ok ? "done" : ""}">${esc(x.t)}</span></label></li>` : "").join("")}</ul></div>`
+            : `<div class="panel-flat p-4 text-sm text-slate-500">Sin metas para esta semana. <button type="button" data-ctl-pane="prog" class="accent hover:underline">Ponlas en Progreso →</button></div>`}
+          ${calHtml()}
+        </div>
       </section>`;
-    bind(el);
+  }
+
+  function calHtml() {
+    return `
+      <div class="panel p-5 sm:p-6">
+        <h3 class="sec-title"><span class="eyebrow">Recordatorios en tu calendario</span></h3>
+        <p class="text-sm text-slate-500 mt-2">Descarga tus sesiones, hitos, exámenes y seguimientos como archivo <span class="mono">.ics</span>, con aviso 10 minutos antes de cada sesión.</p>
+        <div class="mt-3 grid gap-1.5 text-sm">
+          <label class="check"><input type="checkbox" id="icsDias" checked /><span>Sesiones diarias del plan (a tu hora de estudio)</span></label>
+          <label class="check"><input type="checkbox" id="icsHitos" checked /><span>Hitos y exámenes de certificación</span></label>
+          <label class="check"><input type="checkbox" id="icsSeg" checked /><span>Seguimientos de postulaciones y pendientes con fecha</span></label>
+        </div>
+        <button type="button" id="icsBtn" class="btn btn-primary mt-4">Descargar calendario (.ics)</button>
+        <details class="how mt-3"><summary>cómo agregarlo</summary><p class="text-xs text-slate-600 dark:text-slate-300 mt-1 leading-relaxed"><strong>iPhone:</strong> descárgalo desde Safari, ábrelo y toca «Agregar todo». <strong>Android / Google Calendar:</strong> en la PC entra a calendar.google.com → ⚙ Configuración → Importar y exportar → elige el archivo; aparecerá solo en tu teléfono. Si cambias tu hora de estudio, vuelve a importarlo: los eventos se actualizan, no se duplican.</p></details>
+      </div>`;
+  }
+
+  /* ---------- Calendario .ics ---------- */
+  const slug = (s) => String(s).normalize("NFD").replace(/[^a-zA-Z0-9]+/g, "-").toLowerCase().slice(0, 40);
+  function buildICS(opt) {
+    const r = M().planRange(), t = today();
+    const [hh, mm] = (r.hora || "16:00").split(":").map(Number);
+    const enc = new TextEncoder();
+    const escI = (s) => String(s || "").replace(/\\/g, "\\\\").replace(/\n/g, "\\n").replace(/([,;])/g, "\\$1");
+    const fold = (line) => { let out = "", cur = "", n = 0; for (const ch of line) { const b = enc.encode(ch).length; if (n + b > 73) { out += cur + "\r\n "; cur = ""; n = 1; } cur += ch; n += b; } return out + cur; };
+    const dt = (d, h, m) => `${d.replace(/-/g, "")}T${pad(h)}${pad(m)}00`;
+    const stamp = new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d+/, "");
+    const ev = [];
+    const add = (uid, lines) => ev.push(["BEGIN:VEVENT", `UID:${uid}@bitacora27`, `DTSTAMP:${stamp}`, ...lines, "END:VEVENT"]);
+    if (opt.dias) {
+      for (let d = t; d <= r.end; d = addDays(d, 1)) {
+        const day = M().getDay(d); if (!day) continue;
+        const blocks = day.blocks.filter((b) => !(day.kind === "res" && b.key === "res"));
+        const min = blocks.reduce((a, b) => a + (b.min || 0), 0) || 60;
+        const endM = Math.min(23 * 60 + 59, hh * 60 + mm + min);
+        add(`dia-${d}`, [`DTSTART:${dt(d, hh, mm)}`, `DTEND:${dt(d, Math.floor(endM / 60), endM % 60)}`,
+          `SUMMARY:${escI("Bitácora · " + day.title)}`,
+          `DESCRIPTION:${escI(blocks.map((b) => `• ${b.label} (${b.min || 0} min)`).join("\n") + "\n\nAbre Mi día para ver los pasos exactos.")}`,
+          "BEGIN:VALARM", "ACTION:DISPLAY", `DESCRIPTION:${escI("Empieza tu sesión: " + day.title)}`, "TRIGGER:-PT10M", "END:VALARM"]);
+      }
+    }
+    const allDay = (uid, date, title, desc) => add(uid, [`DTSTART;VALUE=DATE:${date.replace(/-/g, "")}`, `DTEND;VALUE=DATE:${addDays(date, 1).replace(/-/g, "")}`, `SUMMARY:${escI(title)}`, `DESCRIPTION:${escI(desc || "")}`, "BEGIN:VALARM", "ACTION:DISPLAY", `DESCRIPTION:${escI(title)}`, "TRIGGER:-PT15H", "END:VALARM"]);
+    if (opt.hitos) {
+      M().allHitos().filter((h) => h.date >= t).forEach((h) => allDay(`hito-${h.date}-${slug(h.titulo)}`, h.date, "🎯 " + h.titulo, h.detalle));
+      for (let d = t; d <= r.end; d = addDays(d, 1)) (M().getDay(d)?.blocks || []).filter((b) => b.key === "cert" && /examen|agenda/i.test(b.label)).forEach((b) => allDay(`cert-${d}`, d, "🏅 " + b.label.replace(/^Certificación · /, ""), "Bloque CERT en Mi día"));
+    }
+    if (opt.seg) {
+      (window.CRM?.followUps() || []).filter((x) => x.date >= t).forEach((x) => allDay(`seg-${x.date}-${slug(x.t)}`, x.date, "✉ " + x.t, x.sub));
+      tareas.filter((x) => !x.ok && x.due && x.due >= t).forEach((x) => allDay(`tarea-${x.id}`, x.due, "☐ " + x.t, x.cat));
+    }
+    const lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Bitacora27//ES", "CALSCALE:GREGORIAN", "METHOD:PUBLISH", "X-WR-CALNAME:Bitácora'27", ...ev.flat(), "END:VCALENDAR"];
+    return { text: lines.map(fold).join("\r\n") + "\r\n", n: ev.length };
+  }
+
+  /* ---------- Revisión semanal ---------- */
+  function weekData(mon) {
+    const days = Array.from({ length: 7 }, (_, i) => addDays(mon, i)), t = today();
+    const inW = (d) => d && d >= mon && d <= days[6];
+    const plan = days.filter((d) => d <= t && M().dayPct(d) !== null && parse(d).getDay() !== 0);
+    const by = focusByDay(), cd = load("dt2027_cards_dia", {});
+    return {
+      days, cumplidos: plan.filter((d) => M().dayPct(d) >= 80).length, conPlan: plan.length,
+      foco: days.reduce((a, d) => a + (by[d] || 0), 0),
+      tareas: tareas.filter((x) => x.ok && inW(x.hecha)).length,
+      contactos: load("dt2027_crm", []).filter((x) => inW(x.fecha)).length,
+      tarjetas: days.reduce((a, d) => a + (cd[d] || 0), 0),
+      horas: load("dt2027_resid_horas", []).filter((x) => inW(x.date)).reduce((a, x) => a + Number(x.h || 0), 0),
+      logros: load("dt2027_logros", []).filter((x) => inW(x.date))
+    };
+  }
+  function semanaHtml() {
+    const t = today(), mon = addDays(monday(t), weekOff * 7), w = weekData(mon), next = addDays(mon, 7);
+    const metasAll = load("dt2027_metas", {}), metasNow = metasAll[mon] || [], metasNext = metasAll[next] || [{}, {}, {}];
+    const metOk = metasNow.filter((x) => x && x.t && x.ok).length, metTot = metasNow.filter((x) => x && x.t).length;
+    const h = (m) => `${Math.floor(m / 60)} h ${m % 60} min`;
+    return `
+      <section class="panel p-5 sm:p-7">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div><p class="eyebrow accent">Revisión semanal</p><p class="font-display text-3xl sm:text-4xl mt-1">Semana del <em>${short(mon)}</em></p></div>
+          <div class="seg"><button type="button" data-week="-1">‹ Anterior</button><button type="button" data-week="0" aria-selected="${weekOff === 0}">Esta</button><button type="button" data-week="1" ${weekOff >= 0 ? "disabled" : ""}>Siguiente ›</button></div>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-5 mt-6">
+          ${UI.stat(`${w.cumplidos}<span class="text-xl text-slate-400">/${w.conPlan}</span>`, "días ≥ 80%", w.conPlan && w.cumplidos === w.conPlan ? "text-[color:var(--ok)]" : "")}
+          ${UI.stat(h(w.foco), "de enfoque")}
+          ${UI.stat(w.contactos, "postulaciones / contactos")}
+          ${UI.stat(w.tareas, "pendientes cerrados")}
+          ${UI.stat(w.tarjetas, "tarjetas repasadas")}
+          ${UI.stat(Math.round(w.horas * 10) / 10, "h de residencia")}
+          ${UI.stat(w.logros.length, "logros")}
+          ${UI.stat(metTot ? `${metOk}<span class="text-xl text-slate-400">/${metTot}</span>` : "—", "metas cumplidas")}
+        </div>
+        ${w.logros.length ? `<p class="text-sm mt-5"><span class="eyebrow mr-2">Logros</span>${w.logros.map((x) => esc(x.t)).join(" · ")}</p>` : ""}
+        <div class="grid gap-6 md:grid-cols-2 mt-6 pt-6 border-t hair">
+          <div>
+            <p class="eyebrow mb-2">Metas para la semana del ${short(next)}</p>
+            <div class="grid gap-2">${[0, 1, 2].map((i) => `<input data-meta="${next}|${i}" class="field" value="${esc(metasNext[i]?.t || "")}" placeholder="${["Ej. 5 postulaciones nuevas", "Ej. aprobar Foundational C#", "Ej. 6 días ≥ 80%"][i]}" maxlength="120" />`).join("")}</div>
+          </div>
+          <div class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+            <p class="eyebrow mb-2">Preguntas para cerrar la semana</p>
+            <ol class="list-decimal ml-4 space-y-1"><li>¿Qué fue lo que más me acercó a la residencia?</li><li>¿Qué me distrajo o me atoró, y qué cambio el lunes?</li><li>¿Qué día fallé y por qué? ¿Necesitaba el plan mínimo?</li></ol>
+            <p class="text-xs text-slate-500 mt-2">Escribe tus respuestas en Mi día del domingo (Revisión semanal).</p>
+            <button type="button" id="weekCopy" class="btn btn-sm mt-4">Copiar resumen de la semana</button>
+          </div>
+        </div>
+      </section>`;
   }
 
   function pendientesHtml() {
@@ -273,6 +429,28 @@
   function bind(el) {
     const t = today();
     el.querySelector("#ctlKeys")?.addEventListener("click", () => el.querySelector("#ctlKeysBox").classList.toggle("hidden"));
+    el.querySelectorAll("[data-ctl-pane]").forEach((b) => b.addEventListener("click", () => show(b.dataset.ctlPane)));
+    el.querySelectorAll("[data-backup]").forEach((b) => b.addEventListener("click", () => window.APP_BACKUP?.share()));
+    el.querySelector("#ctlMin")?.addEventListener("click", () => { M().setMinimo(t, !M().isMinimo(t)); rerender(); });
+    el.querySelector("#icsBtn")?.addEventListener("click", () => {
+      const { text, n } = buildICS({ dias: el.querySelector("#icsDias").checked, hitos: el.querySelector("#icsHitos").checked, seg: el.querySelector("#icsSeg").checked });
+      if (!n) { toast("No hay eventos con esas opciones"); return; }
+      UI.download(`bitacora27_${t}.ics`, text, "text/calendar"); toast(`${n} eventos listos para tu calendario`);
+    });
+    el.querySelectorAll("[data-week]").forEach((b) => b.addEventListener("click", () => { const v = +b.dataset.week; weekOff = v === 0 ? 0 : Math.min(0, weekOff + v); rerender(); }));
+    el.querySelectorAll("[data-meta]").forEach((i) => i.addEventListener("change", () => {
+      const [w, k] = i.dataset.meta.split("|"), all = load("dt2027_metas", {});
+      all[w] = all[w] || [{}, {}, {}]; all[w][+k] = { ...(all[w][+k] || {}), t: i.value.trim() }; save("dt2027_metas", all); toast("Meta guardada");
+    }));
+    el.querySelectorAll("[data-meta-ok]").forEach((c) => c.addEventListener("change", () => {
+      const [w, k] = c.dataset.metaOk.split("|"), all = load("dt2027_metas", {});
+      if (all[w]?.[+k]) { all[w][+k].ok = c.checked; save("dt2027_metas", all); rerender(); }
+    }));
+    el.querySelector("#weekCopy")?.addEventListener("click", () => {
+      const mon = addDays(monday(t), weekOff * 7), w = weekData(mon), m = (load("dt2027_metas", {})[mon] || []).filter((x) => x && x.t);
+      UI.copy([`Semana del ${short(mon)}`, `- Días cumplidos: ${w.cumplidos}/${w.conPlan}`, `- Enfoque: ${Math.round(w.foco / 6) / 10} h`, `- Postulaciones/contactos: ${w.contactos}`, `- Pendientes cerrados: ${w.tareas}`, `- Tarjetas repasadas: ${w.tarjetas}`, `- Horas de residencia: ${w.horas}`, `- Logros: ${w.logros.map((x) => x.t).join("; ") || "—"}`, `- Metas: ${m.map((x) => (x.ok ? "✓ " : "✗ ") + x.t).join("; ") || "—"}`].join("\n"));
+    });
+
     el.querySelectorAll("input[data-t3]").forEach((i) => i.addEventListener("change", (e) => {
       const k = +e.target.dataset.t3; top3[t] = top3[t] || [{}, {}, {}];
       top3[t][k] = { ...(top3[t][k] || {}), t: e.target.value.trim() }; saveTop3();
@@ -315,6 +493,11 @@
     });
     el.querySelectorAll("[data-cat]").forEach((b) => b.addEventListener("click", () => { catFilter = b.dataset.cat; rerender(); }));
   }
+  function show(p) {
+    pane = PANES.some(([k]) => k === p) ? p : "hoy"; save("dt2027_ctl_pane", pane);
+    if (document.getElementById("view-control")?.classList.contains("hidden")) goTab("control");
+    render(); document.querySelector(".ctl-tabs")?.scrollIntoView({ block: "nearest" });
+  }
   function rerender() { const y = window.scrollY; render(); window.scrollTo(0, y); updateRail(); }
   function goTab(name) { document.querySelector(`.tab-btn[data-tab="${name}"]`)?.click(); }
   function focusNext() {
@@ -340,9 +523,12 @@
     if (!document.getElementById("focusOverlay")?.classList.contains("hidden")) return;
     if (document.querySelector(".fixed.inset-0:not(.hidden)[role='dialog']")) return;
     const tabs = ["dia", "ruta", "vacantes", "empresas", "control"];
+    const inRepaso = pane === "repaso" && !document.getElementById("view-control")?.classList.contains("hidden") && window.CARDS?.isShown();
+    if (inRepaso && (e.key === "1" || e.key === "2")) { window.CARDS.act(e.key === "2" ? "ok" : "ko", rerender); return; }
     if (/^[1-5]$/.test(e.key)) { goTab(tabs[+e.key - 1]); }
     else if (e.key === "e" || e.key === "E") { e.preventDefault(); focusNext(); }
-    else if (e.key === "n" || e.key === "N") { e.preventDefault(); goTab("control"); setTimeout(() => { const i = document.getElementById("tkText"); i?.focus(); i?.scrollIntoView({ block: "center" }); }, 60); }
+    else if (pane === "repaso" && e.key === " " && window.CARDS?.hasCard() && !document.getElementById("view-control")?.classList.contains("hidden")) { e.preventDefault(); window.CARDS.act("show", rerender); }
+    else if (e.key === "n" || e.key === "N") { e.preventDefault(); goTab("control"); show("pend"); setTimeout(() => { const i = document.getElementById("tkText"); i?.focus(); i?.scrollIntoView({ block: "center" }); }, 60); }
   });
 
   // Recarga cuando se abre la pestaña o cambian datos en otra parte (modo enfoque, otra pestaña del navegador).
@@ -359,7 +545,7 @@
       if (Array.isArray(x.enfoque) && !load(LS.LOG, []).length) save(LS.LOG, x.enfoque);
       render(); updateRail();
     },
-    render
+    render, show
   };
   function init() { render(); updateRail(); }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();

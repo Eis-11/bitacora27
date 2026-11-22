@@ -336,3 +336,27 @@ button.hm-c:hover { outline: 1px solid var(--ink); }
   .is-app .focus-in { padding-top: calc(env(safe-area-inset-top) + 1.5rem); }
 }
 .is-app body, body { overscroll-behavior-y: none; }
+
+/* ==================== CONTROL: secciones ==================== */
+.ctl-tabs { display: flex; gap: .25rem; overflow-x: auto; border-bottom: 1px solid var(--line); scrollbar-width: none; position: sticky; top: 0; z-index: 20; background: var(--bg); }
+@media (max-width: 1023px) { .ctl-tabs { top: 57px; } }
+.ctl-tabs::-webkit-scrollbar { display: none; }
+.ctl-tabs button { white-space: nowrap; padding: .75rem .9rem; font-size: .9rem; font-weight: 500; color: var(--muted); border: 0; background: none; position: relative; cursor: pointer; display: inline-flex; align-items: center; gap: .4rem; }
+.ctl-tabs button:hover { color: var(--ink); }
+.ctl-tabs button[aria-selected="true"] { color: var(--ink); }
+.ctl-tabs button[aria-selected="true"]::after { content: ""; position: absolute; left: .6rem; right: .6rem; bottom: -1px; height: 2px; background: var(--accent); }
+.ctl-badge { font-family: "Geist Mono", monospace; font-size: 10px; min-width: 18px; padding: 1px 5px; border-radius: 99px; background: var(--line-2); color: var(--ink); text-align: center; }
+.ctl-badge.bad { background: var(--bad); color: #fff; }
+.crm-due { background: color-mix(in srgb, var(--warn) 7%, transparent); margin: 0 -.75rem; padding-left: .75rem; padding-right: .75rem; border-radius: 6px; }
+.flashcard { border: 1px solid var(--line); border-radius: 12px; padding: 1.6rem; min-height: 220px; background: var(--surface); }
+@media (min-width: 640px) { .flashcard { padding: 2.2rem; } }
+
+/* ==================== BÚSQUEDA ==================== */
+.q-ov { position: fixed; inset: 0; z-index: 75; background: rgba(0,0,0,.55); display: flex; justify-content: center; align-items: flex-start; padding: 9vh 1rem 1rem; }
+.q-box { width: min(640px, 100%); overflow: hidden; background: var(--bg); }
+.q-item { display: flex; width: 100%; gap: .7rem; align-items: center; text-align: left; padding: .6rem .7rem; border-radius: 6px; border: 0; background: none; cursor: pointer; color: inherit; }
+.q-item:hover, .q-item.on { background: var(--line-2); }
+.dark .q-item:hover, .dark .q-item.on { background: #141414; }
+.rail-actions .lbl kbd { margin-left: .5rem; }
+.btn kbd { background: transparent; color: inherit; border-color: currentColor; opacity: .6; }
+@media (pointer: coarse) { .btn kbd, .rail-actions .lbl kbd { display: none; } }

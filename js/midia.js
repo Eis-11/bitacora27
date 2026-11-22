@@ -33,6 +33,7 @@
   let notas = load(LS.NOTAS, {});
   let revs = load(LS.REV, {});
   let hitosDone = load(LS.HITOS, {});
+  let minimo = load("dt2027_minimo", {}); // { fecha: true } → día en «plan mínimo» (≈30 min)
   const byDate = Object.fromEntries(PLAN.days.map((d) => [d.date, d]));
   const PLAN_START = PLAN.days[0]?.date || todayIso();
   const PLAN_END = PLAN.days.at(-1)?.date || todayIso();
@@ -106,7 +107,18 @@
     };
   }
 
+  // Plan mínimo: solo lo indispensable para no romper la racha (mismos ids de pasos).
+  const KEEP = { res: 1, prog: 1, algo: 2, cert: 1, learn: 1, gap: 1, proj: 1 };
   function getDay(date) {
+    const d = getDayFull(date);
+    if (!d || !minimo[date] || d.kind === "sun") return d;
+    const blocks = d.blocks.filter((b) => KEEP[b.key]).map((b) => {
+      const items = b.items.slice(0, KEEP[b.key]);
+      return { ...b, items, min: (d.kind === "res" && b.key === "res") ? b.min : items.reduce((a, x) => a + (x.min || 0), 0), ok: undefined };
+    });
+    return { ...d, minimo: true, objective: `Plan mínimo: lo indispensable para no perder el ritmo. ${d.objective || ""}`, blocks };
+  }
+  function getDayFull(date) {
     if (byDate[date]) return { ...byDate[date], kind: "plan" };
     if (parse(date).getDay() === 0 && date >= PLAN_START && date <= aj.finRes) return sundayDay(date);
     if (date >= aj.inicioRes && date <= aj.finRes) return residencyDay(date);
@@ -190,7 +202,7 @@
       ${UI.head("01", rel ? `Mi día · ${rel}` : "Mi día",
         `${cap(DIAS[sd.getDay()])} <em>${sd.getDate()} de ${MESES[sd.getMonth()]}</em>`,
         day ? `<strong class="text-slate-900 dark:text-white font-semibold">${esc(day.title)}.</strong> ${esc(day.objective)}` : "",
-        `<button id="ajBtn" type="button" class="btn btn-sm">Ajustes</button>`)}
+        `<span class="flex gap-1.5">${day && day.kind !== "sun" ? `<button id="minBtn" type="button" class="btn btn-sm ${minimo[sel] ? "btn-accent" : ""}" title="Deja solo lo indispensable (≈30 min) para no romper tu racha">${minimo[sel] ? "Volver al plan completo" : "Hoy solo tengo 30 min"}</button>` : ""}<button id="ajBtn" type="button" class="btn btn-sm">Ajustes</button></span>`)}
 
       <div id="ajPanel" class="hidden panel p-5 grid gap-4 sm:grid-cols-3 text-sm">
         <label class="grid gap-1.5"><span class="eyebrow">Hora en que empiezas a estudiar</span><input id="ajHora" type="time" value="${esc(aj.hora)}" class="field" /></label>
@@ -365,6 +377,7 @@
       pastPending().forEach(({ date }) => { done[date] = Object.fromEntries(items(getDay(date)).map((i) => [i, 1])); });
       save(LS.DIA, done); rerender(); toast("Días anteriores marcados");
     });
+    el.querySelector("#minBtn")?.addEventListener("click", () => setMinimo(sel, !minimo[sel]));
     el.querySelectorAll("button[data-focus]").forEach((b) => b.addEventListener("click", () => {
       const blk = (getDay(sel)?.blocks || []).find((x) => x.key === b.dataset.focus);
       if (!blk || !window.FOCUS) return;
@@ -381,6 +394,12 @@
     }));
   }
 
+  function setMinimo(date, on) {
+    if (on) minimo[date] = true; else delete minimo[date];
+    save("dt2027_minimo", minimo); rerender();
+    toast(on ? "Plan mínimo: haz esto y el día cuenta." : "Plan completo de nuevo");
+    window.dispatchEvent(new CustomEvent("dt-data"));
+  }
   function go(date) { sel = date; render(); }
   function rerender() { const y = window.scrollY; render(); window.scrollTo(0, y); }
 
@@ -400,7 +419,8 @@
     render,
     // Para la pestaña Control.
     getDay, dayPct, allHitos, streak, pastPending, hitosDone: () => hitosDone, notas: () => notas,
-    planRange: () => ({ start: PLAN_START, end: PLAN_END, inicioRes: aj.inicioRes, finRes: aj.finRes }),
+    planRange: () => ({ start: PLAN_START, end: PLAN_END, inicioRes: aj.inicioRes, finRes: aj.finRes, hora: aj.hora }),
+    setMinimo, isMinimo: (d) => !!minimo[d],
     go: (date) => { sel = date; render(); }
   };
 

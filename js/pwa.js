@@ -58,6 +58,9 @@
     if (actions) actions.prepend(btn);
     if (isIOS && !standalone()) show();
     if (standalone()) document.documentElement.classList.add("is-app");
+    // La barra del sistema sigue al tema de la app (claro / negro).
+    const syncTheme = () => { const dark = document.documentElement.classList.contains("dark"); document.querySelectorAll('meta[name="theme-color"]').forEach((m) => { m.content = dark ? "#000000" : "#f3f1eb"; m.removeAttribute("media"); }); };
+    syncTheme(); new MutationObserver(syncTheme).observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
 })();

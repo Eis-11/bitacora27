@@ -1,0 +1,26 @@
+{
+  "id": "./",
+  "name": "Bitácora'27 · Residencia ISC",
+  "short_name": "Bitácora'27",
+  "description": "Mi día, ruta de aprendizaje, vacantes de prácticas, certificaciones y control personal para la residencia enero–junio 2027.",
+  "lang": "es-MX",
+  "dir": "ltr",
+  "start_url": "./index.html#dia",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "any",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "categories": ["productivity", "education"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Mi día", "short_name": "Mi día", "url": "./index.html#dia", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Control y pendientes", "short_name": "Control", "url": "./index.html#control", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Vacantes", "short_name": "Vacantes", "url": "./index.html#vacantes", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] }
+  ]
+}

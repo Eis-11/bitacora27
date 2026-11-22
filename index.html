@@ -1,0 +1,2165 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <!-- App instalable (PWA) -->
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
+  <meta name="theme-color" content="#f3f1eb" media="(prefers-color-scheme: light)" />
+  <meta name="application-name" content="Bitácora'27" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Bitácora'27" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="description" content="Plan diario, ruta de aprendizaje, vacantes de prácticas y certificaciones para la residencia ISC enero–junio 2027." />
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png" />
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+  <title>Residencias 2027 · Directorio Tech México — Empresas de Desarrollo de Software y Residencias Profesionales</title>
+  <!-- Tipografía: Instrument Serif (títulos), Geist (texto), Geist Mono (datos) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..800&family=Geist+Mono:wght@400..600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+  <script>
+    // Aplica el tema antes de pintar para evitar parpadeo blanco en modo oscuro.
+    try { const t = localStorage.getItem("dtm2026_theme"); if (t === "dark" || (!t && matchMedia("(prefers-color-scheme: dark)").matches)) document.documentElement.classList.add("dark"); } catch (e) {}
+  </script>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    // Paleta remapeada: "slate" = neutros (papel en claro, negro puro en oscuro); "indigo" = acento bermellón.
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            slate: { 50: '#f3f1eb', 100: '#ebe8e0', 200: '#dedad0', 300: '#c2beb3', 400: '#99958c', 500: '#7a7770', 600: '#55534e', 700: '#2b2b2b', 800: '#1c1c1c', 900: '#000000', 950: '#000000' },
+            indigo: { 50: '#fff1eb', 100: '#ffe2d6', 200: '#ffc3a9', 300: '#ff9c75', 400: '#ff7a4d', 500: '#ff5a24', 600: '#e8460f', 700: '#c2350b', 800: '#8f280a', 900: '#3d1205', 950: '#1f0902' },
+            violet: { 50: '#f4f1ff', 100: '#e9e3ff', 300: '#b9a8ff', 700: '#5b3fd1', 800: '#4a33a8', 950: '#120b2e' }
+          },
+          fontFamily: {
+            sans: ['Geist', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+            serif: ['"Instrument Serif"', 'Georgia', 'serif'],
+            mono: ['"Geist Mono"', 'ui-monospace', 'monospace'],
+          },
+          borderRadius: { lg: '6px', xl: '8px', '2xl': '12px' },
+          boxShadow: {
+            'card': 'none',
+            'card-hover': '0 0 0 1px var(--hover-ring)',
+          }
+        }
+      }
+    };
+  </script>
+  <link rel="stylesheet" href="css/app.css" />
+</head>
+<body class="text-slate-900 dark:text-slate-100 antialiased">
+
+  <!-- Riel lateral: identidad, cuenta regresiva y navegación numerada -->
+  <aside id="rail" class="rail">
+    <div>
+      <p class="wordmark">Bitácora<sup>'27</sup></p>
+      <p class="rail-sub eyebrow">Residencia ISC · ene–jun 2027</p>
+    </div>
+
+    <div id="railCount" class="rail-count"></div>
+
+    <nav aria-label="Secciones" class="rail-nav" role="tablist">
+      <button type="button" role="tab" data-tab="dia" class="tab-btn"><span class="tn">01</span><span class="tl">Mi día</span><span id="tabDiaPct" class="tb"></span></button>
+      <button type="button" role="tab" data-tab="ruta" class="tab-btn"><span class="tn">02</span><span class="tl">Ruta</span><span id="tabRutaPct" class="tb">0%</span></button>
+      <button type="button" role="tab" data-tab="vacantes" class="tab-btn"><span class="tn">03</span><span class="tl">Vacantes</span><span id="tabVacCount" class="tb">0</span></button>
+      <button type="button" role="tab" data-tab="empresas" class="tab-btn"><span class="tn">04</span><span class="tl">Empresas</span><span class="tb">35</span></button>
+      <button type="button" role="tab" data-tab="control" class="tab-btn"><span class="tn">05</span><span class="tl">Control</span><span id="railFocus" class="tb"></span></button>
+    </nav>
+
+    <div class="rail-actions">
+      <button type="button" onclick="openTemplateModal()" class="btn btn-ghost" title="Plantilla de correo para residencia">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" /></svg>
+        <span class="lbl">Plantilla de correo</span>
+      </button>
+      <button type="button" onclick="exportFavoritesSummary()" class="btn btn-ghost" title="Copiar empresas favoritas y postulaciones">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 0 0-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 0 1-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H9.75" /></svg>
+        <span class="lbl">Copiar mis favoritas</span>
+      </button>
+      <button type="button" id="themeToggleBtn" onclick="toggleTheme()" aria-label="Cambiar entre modo claro y negro" class="btn btn-ghost">
+        <svg id="sunIcon" class="w-4 h-4 hidden" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" /></svg>
+        <svg id="moonIcon" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" /></svg>
+        <span class="lbl">Modo claro / negro</span>
+      </button>
+      <p class="rail-foot-note eyebrow" style="letter-spacing:.08em">Tu progreso se guarda en este navegador.</p>
+    </div>
+  </aside>
+
+  <div class="app-main">
+
+  <!-- Contenido Principal -->
+  <main id="view-empresas" class="tab-view view max-w-[1400px] space-y-6">
+    <header class="vhead">
+      <p class="eyebrow"><span class="vnum">04</span> — Empresas</p>
+      <h2>Directorio de empresas <em>de software</em></h2>
+      <p class="vmeta">35 empresas por estado, ordenadas de mejor a peor. Marca favoritas, lleva el estado de cada contacto y usa la plantilla para escribirles.</p>
+    </header>
+
+    <!-- Panel Resumen Estadístico en Tiempo Real (KPIs) -->
+    <section aria-label="Resumen estadístico del directorio" class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      <!-- KPI 1: Total de empresas verificadas -->
+      <div class="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-5 border border-slate-200/90 dark:border-slate-800 shadow-card flex items-start justify-between gap-3">
+        <div>
+          <p class="text-xs font-medium text-slate-500 dark:text-slate-400">Empresas Verificadas</p>
+          <p id="statTotal" class="mt-1.5 text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">35</p>
+          <p class="mt-1 text-[11px] text-slate-500 dark:text-slate-400">En 6 estados y hubs tech</p>
+        </div>
+        <div class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
+          </svg>
+        </div>
+      </div>
+
+      <!-- KPI 2: Empresas con programa/vacantes activas -->
+      <div
+        onclick="quickFilterResidency('Programa Activo')"
+        role="button"
+        tabindex="0"
+        title="Filtrar empresas con programa o vacantes activas"
+        class="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-5 border border-slate-200/90 dark:border-slate-800 hover:border-emerald-400 dark:hover:border-emerald-600 shadow-card transition-all cursor-pointer flex items-start justify-between gap-3 group"
+      >
+        <div>
+          <p class="text-xs font-medium text-slate-500 dark:text-slate-400 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+            Residencias Activas
+          </p>
+          <p id="statActiveResidency" class="mt-1.5 text-2xl sm:text-3xl font-extrabold text-emerald-600 dark:text-emerald-400 tracking-tight">21</p>
+          <p class="mt-1 text-[11px] text-slate-500 dark:text-slate-400">Programa / vacantes abiertas</p>
+        </div>
+        <div class="p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342" />
+          </svg>
+        </div>
+      </div>
+
+      <!-- KPI 3: Empresas Tier 1 -->
+      <div
+        onclick="quickFilterTier('Tier 1')"
+        role="button"
+        tabindex="0"
+        title="Filtrar empresas Tier 1 (Élite / Best Place to Code 2026)"
+        class="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-5 border border-slate-200/90 dark:border-slate-800 hover:border-indigo-400 dark:hover:border-indigo-600 shadow-card transition-all cursor-pointer flex items-start justify-between gap-3 group"
+      >
+        <div>
+          <p class="text-xs font-medium text-slate-500 dark:text-slate-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+            Tier 1 • Élite / BP2C
+          </p>
+          <p id="statTier1" class="mt-1.5 text-2xl sm:text-3xl font-extrabold text-indigo-600 dark:text-indigo-400 tracking-tight">17</p>
+          <p class="mt-1 text-[11px] text-slate-500 dark:text-slate-400">Líderes y Best Place to Code</p>
+        </div>
+        <div class="p-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
+          </svg>
+        </div>
+      </div>
+
+      <!-- KPI 4: Mis Favoritas -->
+      <div
+        onclick="toggleFavoritesOnly()"
+        role="button"
+        tabindex="0"
+        title="Ver solo mis empresas favoritas guardadas"
+        class="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-5 border border-slate-200/90 dark:border-slate-800 hover:border-rose-400 dark:hover:border-rose-600 shadow-card transition-all cursor-pointer flex items-start justify-between gap-3 group"
+      >
+        <div>
+          <p class="text-xs font-medium text-slate-500 dark:text-slate-400 group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors">
+            Mis Favoritas
+          </p>
+          <p id="statFavorites" class="mt-1.5 text-2xl sm:text-3xl font-extrabold text-rose-600 dark:text-rose-400 tracking-tight">0</p>
+          <p id="statAppliedSub" class="mt-1 text-[11px] text-slate-500 dark:text-slate-400">0 postulaciones activas</p>
+        </div>
+        <div class="p-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400">
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+            <path d="m11.645 20.91-.007-.003-.022-.012a15.247 15.247 0 0 1-.383-.218 25.18 25.18 0 0 1-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0 1 12 5.052 5.5 5.5 0 0 1 16.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 0 1-4.244 3.17 15.247 15.247 0 0 1-.383.219l-.022.012-.007.004-.003.001a.752.752 0 0 1-.704 0l-.003-.001Z" />
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- Barra de Controles y Filtros Interactivos -->
+    <section aria-label="Filtros y búsqueda" class="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-6 border border-slate-200/90 dark:border-slate-800 shadow-card space-y-4">
+      <!-- Fila 1: Buscador en Tiempo Real + Filtros Select -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-3">
+        <!-- Buscador -->
+        <div class="lg:col-span-5 relative">
+          <label for="searchInput" class="sr-only">Buscar empresa, tecnología o ciudad</label>
+          <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+            </svg>
+          </div>
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="Buscar empresa, stack (IA, Cloud, React, Java, ERP, Móvil)..."
+            class="w-full pl-10 pr-9 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+          />
+          <button
+            type="button"
+            id="clearSearchBtn"
+            onclick="clearSearch()"
+            aria-label="Limpiar búsqueda"
+            class="hidden absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Filtro por Ranking / Tier -->
+        <div class="sm:col-span-6 lg:col-span-3">
+          <label for="tierFilter" class="sr-only">Filtrar por Ranking / Tier</label>
+          <select
+            id="tierFilter"
+            class="w-full px-3.5 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all cursor-pointer"
+          >
+            <option value="ALL">Ranking: Todos los niveles</option>
+            <option value="Tier 1">Tier 1 (Élite / BP2C 2026)</option>
+            <option value="Tier 2">Tier 2 (Consolidadas)</option>
+            <option value="Tier 3">Tier 3 (Agencias Locales)</option>
+          </select>
+        </div>
+
+        <!-- Filtro por Residencias / Prácticas -->
+        <div class="sm:col-span-6 lg:col-span-4">
+          <label for="residencyFilter" class="sr-only">Filtrar por Residencias / Prácticas</label>
+          <select
+            id="residencyFilter"
+            class="w-full px-3.5 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all cursor-pointer"
+          >
+            <option value="ALL">Residencias: Todas las modalidades</option>
+            <option value="Programa Activo">Programa / Vacantes Activas</option>
+            <option value="Contacto Directo">Contacto Directo</option>
+            <option value="Sin vacantes públicas">Sin vacantes públicas</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Fila 2: Botones de Estado / Ciudad -->
+      <div class="flex flex-col gap-2">
+        <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+          Filtrar por Estado / Hub Tecnológico
+        </span>
+        <div id="cityFilterContainer" class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+          <!-- Generado dinámicamente vía JS -->
+        </div>
+      </div>
+
+      <!-- Fila 3: Etiquetas rápidas de tecnología + Toggle Favoritas + Reset -->
+      <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
+        <!-- Chips de Tecnologías Rápidas -->
+        <div class="flex items-center gap-1.5 flex-wrap">
+          <span class="text-xs font-medium text-slate-500 dark:text-slate-400 mr-1">Stack rápido:</span>
+          <button type="button" onclick="applyTechChip('IA')" class="tech-chip px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-100 hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 dark:bg-slate-800 dark:hover:bg-indigo-950/60 dark:text-slate-300 dark:hover:text-indigo-300 transition-colors cursor-pointer">IA / LLMs</button>
+          <button type="button" onclick="applyTechChip('Cloud')" class="tech-chip px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-100 hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 dark:bg-slate-800 dark:hover:bg-indigo-950/60 dark:text-slate-300 dark:hover:text-indigo-300 transition-colors cursor-pointer">Cloud</button>
+          <button type="button" onclick="applyTechChip('Full-stack')" class="tech-chip px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-100 hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 dark:bg-slate-800 dark:hover:bg-indigo-950/60 dark:text-slate-300 dark:hover:text-indigo-300 transition-colors cursor-pointer">Full-Stack</button>
+          <button type="button" onclick="applyTechChip('Móvil')" class="tech-chip px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-100 hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 dark:bg-slate-800 dark:hover:bg-indigo-950/60 dark:text-slate-300 dark:hover:text-indigo-300 transition-colors cursor-pointer">Móvil</button>
+          <button type="button" onclick="applyTechChip('ERP')" class="tech-chip px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-100 hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 dark:bg-slate-800 dark:hover:bg-indigo-950/60 dark:text-slate-300 dark:hover:text-indigo-300 transition-colors cursor-pointer">ERP / SAP</button>
+          <button type="button" onclick="applyTechChip('Fintech')" class="tech-chip px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-100 hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 dark:bg-slate-800 dark:hover:bg-indigo-950/60 dark:text-slate-300 dark:hover:text-indigo-300 transition-colors cursor-pointer">Fintech</button>
+          <button type="button" onclick="applyTechChip('QA')" class="tech-chip px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-100 hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 dark:bg-slate-800 dark:hover:bg-indigo-950/60 dark:text-slate-300 dark:hover:text-indigo-300 transition-colors cursor-pointer">QA / Testing</button>
+        </div>
+
+        <!-- Toggle Solo Mis Favoritas + Limpiar Filtros -->
+        <div class="flex items-center gap-3 ml-auto">
+          <label class="inline-flex items-center gap-2.5 cursor-pointer select-none">
+            <input type="checkbox" id="favoritesOnlyToggle" class="sr-only peer" />
+            <div class="relative w-10 h-5 bg-slate-200 dark:bg-slate-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-500 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-rose-500"></div>
+            <span class="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-1">
+              <span>Solo mis favoritas</span>
+              <span id="favBadgeInline" class="px-1.5 py-0.2 rounded-full text-[11px] bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300">0</span>
+            </span>
+          </label>
+
+          <button
+            type="button"
+            id="resetFiltersBtn"
+            onclick="resetAllFilters()"
+            class="hidden px-3 py-1.5 rounded-xl text-xs font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition-colors cursor-pointer"
+          >
+            Restablecer filtros
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Barra de Estado de Resultados -->
+    <div class="flex flex-wrap items-center justify-between gap-2 px-1">
+      <p id="resultsCounterText" class="text-sm text-slate-600 dark:text-slate-400">
+        Mostrando <strong class="text-slate-900 dark:text-white">35</strong> empresas ordenadas por ranking estatal
+      </p>
+      <div class="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
+        <span class="inline-flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Programa Activo
+        </span>
+        <span class="inline-flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-amber-500"></span> Contacto Directo
+        </span>
+        <span class="inline-flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-slate-400"></span> Sin vacantes públicas
+        </span>
+      </div>
+    </div>
+
+    <!-- Contenedor Principal de Resultados Agrupados por Estado -->
+    <div id="directoryContainer" class="space-y-10">
+      <!-- Se renderiza dinámicamente mediante JavaScript -->
+    </div>
+
+    <!-- Estado Vacío (cuando ningún resultado coincide con los filtros) -->
+    <div id="emptyState" class="hidden bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-10 text-center max-w-lg mx-auto shadow-card">
+      <div class="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-400 mx-auto flex items-center justify-center mb-4">
+        <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+        </svg>
+      </div>
+      <h3 class="text-lg font-bold text-slate-900 dark:text-white">No se encontraron empresas con esos filtros</h3>
+      <p class="mt-1.5 text-sm text-slate-500 dark:text-slate-400">
+        Intenta ajustar los términos de búsqueda, cambiar el estado o desactivar el filtro de favoritas.
+      </p>
+      <button
+        type="button"
+        onclick="resetAllFilters()"
+        class="mt-5 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-colors cursor-pointer"
+      >
+        Ver todas las empresas
+      </button>
+    </div>
+
+  </main>
+
+  <!-- Vista: Mi día -->
+  <main id="view-dia" class="tab-view hidden view max-w-[1320px] space-y-8"></main>
+
+  <!-- Vista: Vacantes -->
+  <main id="view-vacantes" class="tab-view hidden view max-w-[1400px] space-y-6"></main>
+
+  <!-- Vista: Ruta de aprendizaje -->
+  <main id="view-ruta" class="tab-view hidden view max-w-[1240px] space-y-8"></main>
+  <main id="view-control" class="tab-view hidden view max-w-[1320px] space-y-6"></main>
+
+  <!-- Pie de Página -->
+  <footer class="border-t hair">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500 dark:text-slate-400">
+      <p>
+        <strong class="text-slate-700 dark:text-slate-300">Directorio Tech México 2026</strong> — Guía verificada de vinculación para Residencias Profesionales en Ingeniería en Sistemas Computacionales.
+      </p>
+      <p>
+        Tus favoritas y estados de postulación se guardan automáticamente en tu navegador.
+      </p>
+    </div>
+  </footer>
+
+  </div><!-- /app-main -->
+
+  <!-- Modal: Plantilla Copiable de Correo / Mensaje para Residencia Profesional -->
+  <div
+    id="templateModal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="modalTitle"
+    class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-950/60 backdrop-blur-sm p-4 sm:p-6 flex items-center justify-center"
+  >
+    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 max-w-2xl w-full shadow-2xl overflow-hidden animate-card">
+      <!-- Cabecera del Modal -->
+      <div class="px-5 sm:px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3 bg-slate-50/70 dark:bg-slate-800/40">
+        <div>
+          <h2 id="modalTitle" class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
+            Plantilla de Solicitud — Residencia Profesional
+          </h2>
+          <p id="modalSubtitle" class="text-xs text-slate-500 dark:text-slate-400">
+            Personaliza tus datos y copia el correo listo para enviar a Reclutamiento / Vinculación
+          </p>
+        </div>
+        <button
+          type="button"
+          onclick="closeTemplateModal()"
+          aria-label="Cerrar ventana"
+          class="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Cuerpo del Modal -->
+      <div class="p-5 sm:p-6 space-y-4 max-h-[82vh] overflow-y-auto">
+        <!-- Campos de Personalización Rápida -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label for="tplStudentName" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Tu Nombre Completo</label>
+            <input
+              type="text"
+              id="tplStudentName"
+              value="[Tu Nombre Completo]"
+              oninput="updateTemplatePreview()"
+              class="w-full px-3 py-2 rounded-xl text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+            />
+          </div>
+          <div>
+            <label for="tplUniversity" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Institución / Tecnológico</label>
+            <input
+              type="text"
+              id="tplUniversity"
+              value="[Instituto Tecnológico / Universidad]"
+              oninput="updateTemplatePreview()"
+              class="w-full px-3 py-2 rounded-xl text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+            />
+          </div>
+          <div>
+            <label for="tplCompany" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Empresa Destino</label>
+            <input
+              type="text"
+              id="tplCompany"
+              value="[Nombre de la Empresa]"
+              oninput="updateTemplatePreview()"
+              class="w-full px-3 py-2 rounded-xl text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+            />
+          </div>
+          <div>
+            <label for="tplStack" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Tu Stack Principal</label>
+            <input
+              type="text"
+              id="tplStack"
+              value="JavaScript/TypeScript, React, Node.js, Python y SQL"
+              oninput="updateTemplatePreview()"
+              class="w-full px-3 py-2 rounded-xl text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+            />
+          </div>
+        </div>
+
+        <!-- Selector de Formato (Correo Formal vs Mensaje Corto LinkedIn/WhatsApp) -->
+        <div class="flex items-center gap-2 pt-1">
+          <button
+            type="button"
+            id="btnFormatEmail"
+            onclick="setTemplateFormat('email')"
+            class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white cursor-pointer transition-colors"
+          >
+            Correo Formal (Reclutamiento)
+          </button>
+          <button
+            type="button"
+            id="btnFormatShort"
+            onclick="setTemplateFormat('short')"
+            class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 cursor-pointer transition-colors"
+          >
+            Mensaje Corto (LinkedIn / WhatsApp)
+          </button>
+        </div>
+
+        <!-- Vista Previa Editable del Texto Generado -->
+        <div>
+          <label for="tplOutput" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+            Mensaje listo para copiar (puedes editarlo directamente):
+          </label>
+          <textarea
+            id="tplOutput"
+            rows="10"
+            class="w-full p-3.5 rounded-xl text-xs sm:text-sm font-mono leading-relaxed bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+          ></textarea>
+        </div>
+
+        <!-- Botones de Acción del Modal -->
+        <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
+          <span id="modalDirectEmailHint" class="text-xs text-emerald-600 dark:text-emerald-400 font-medium"></span>
+          <div class="flex items-center gap-2.5 ml-auto">
+            <button
+              type="button"
+              onclick="closeTemplateModal()"
+              class="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-colors cursor-pointer"
+            >
+              Cerrar
+            </button>
+            <button
+              type="button"
+              onclick="copyTemplateToClipboard()"
+              class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition-colors cursor-pointer"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0 0 13.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 0 1-.75.75H9a.75.75 0 0 1-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 0 1-2.25 2.25H6.75A2.25 2.25 0 0 1 4.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 0 1 1.927-.184" />
+              </svg>
+              <span>Copiar Plantilla</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notificación Toast Flotante -->
+  <div
+    id="toastNotification"
+    role="status"
+    aria-live="polite"
+    class="pointer-events-none fixed bottom-5 right-5 z-50 transform translate-y-4 opacity-0 transition-all duration-300"
+  >
+    <div class="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-slate-900 dark:bg-slate-800 text-white text-xs sm:text-sm font-medium shadow-xl border border-slate-700">
+      <span class="w-2 h-2 rounded-full bg-emerald-400 flex-shrink-0"></span>
+      <span id="toastMessage">Acción completada</span>
+    </div>
+  </div>
+
+  <!-- Lógica de Datos Verificados e Interactividad -->
+  <script>
+    /**
+     * Base de datos verificada 2026 de empresas de desarrollo de software
+     * organizadas de mejor a peor dentro de cada estado/ciudad.
+     */
+    const COMPANIES_DATA = [
+      // ==================== ZACATECAS ====================
+      {
+        id: "zac-1",
+        stateKey: "Zacatecas",
+        stateLabel: "Zacatecas",
+        stateSubtitle: "Ecosistema Quantum Ciudad del Conocimiento y desarrollo regional",
+        rank: 1,
+        rankLabel: "#1 Zacatecas",
+        name: "Lasec Technology Systems",
+        tierCategory: "Tier 1",
+        tierBadge: "Tier 1 Regional - Quantum",
+        specialty: "Software industrial, IoT, telecomunicaciones y sistemas críticos en Quantum Ciudad del Conocimiento.",
+        tags: ["IoT", "Software Industrial", "Telecomunicaciones", "Sistemas Críticos"],
+        website: "https://lasec.com.mx",
+        extraLinks: [
+          { label: "LinkedIn Oficial", url: "https://www.linkedin.com/company/lasecmx" }
+        ],
+        emails: [],
+        phones: [],
+        address: "Parque Quantum, Zacatecas, Zac.",
+        residencyStatus: "Programa Activo",
+        residencyDetail: "Vinculación activa con universidades de Zacatecas como UAZ, ITZ y centros en Quantum."
+      },
+      {
+        id: "zac-2",
+        stateKey: "Zacatecas",
+        stateLabel: "Zacatecas",
+        stateSubtitle: "Ecosistema Quantum Ciudad del Conocimiento y desarrollo regional",
+        rank: 2,
+        rankLabel: "#2 Zacatecas",
+        name: "CIMAT Unidad Zacatecas / LABSOL",
+        tierCategory: "Tier 1",
+        tierBadge: "Tier 1 I+D y Software Libre",
+        specialty: "Ingeniería de software, ciencia de datos, apps móviles y código abierto en Quantum Ciudad del Conocimiento.",
+        tags: ["Ciencia de Datos", "Open Source", "Móvil", "Ingeniería de Software"],
+        website: "https://www.cimat.mx/nuestras-sedes/cimat-zacatecas/",
+        extraLinks: [
+          { label: "Web Quantum", url: "https://quantum.gob.mx" }
+        ],
+        emails: ["mcr@cimat.mx"],
+        phones: ["+52 492 998 0300"],
+        address: "Quantum Ciudad del Conocimiento, Zacatecas",
+        residencyStatus: "Programa Activo",
+        residencyDetail: "Convocatorias constantes de residencias profesionales y estancias técnicas."
+      },
+      {
+        id: "zac-3",
+        stateKey: "Zacatecas",
+        stateLabel: "Zacatecas",
+        stateSubtitle: "Ecosistema Quantum Ciudad del Conocimiento y desarrollo regional",
+        rank: 3,
+        rankLabel: "#3 Zacatecas",
+        name: "Plata Software",
+        tierCategory: "Tier 2",
+        tierBadge: "Tier 2 Agencia Local",
+        specialty: "Software a la medida, sistemas de inventario, páginas web, chatbots de WhatsApp y automatización con IA en Zacatecas y Guadalupe.",
+        tags: ["Software a Medida", "Chatbots", "IA", "Web"],
+        website: "https://platasoftware.com",
+        extraLinks: [
+          { label: "Formulario y WhatsApp Directo", url: "https://platasoftware.com" }
+        ],
+        emails: [],
+        phones: [],
+        address: "Zacatecas y Guadalupe, Zac.",
+        residencyStatus: "Contacto Directo",
+        residencyDetail: "Enviar CV y portafolio directamente mediante formulario o WhatsApp en su web."
+      },
+      {
+        id: "zac-4",
+        stateKey: "Zacatecas",
+        stateLabel: "Zacatecas",
+        stateSubtitle: "Ecosistema Quantum Ciudad del Conocimiento y desarrollo regional",
+        rank: 4,
+        rankLabel: "#4 Zacatecas",
+        name: "SYCA Consultores",
+        tierCategory: "Tier 2",
+        tierBadge: "Tier 2 Consultoría ERP/Software",
+        specialty: "Desarrollo personalizado sobre Zoho Creator, SAP Business One y Odoo para procesos empresariales.",
+        tags: ["ERP", "SAP Business One", "Odoo", "Zoho Creator"],
+        website: "https://syca.com.mx/desarrollo-de-software/zacatecas/",
+        extraLinks: [],
+        emails: [],
+        phones: [],
+        address: "Zacatecas, Zac. (Canal YouTube: SYCA Consultores)",
+        residencyStatus: "Contacto Directo",
+        residencyDetail: "Oportunidades en implementación ERP y desarrollo."
+      },
+      {
+        id: "zac-5",
+        stateKey: "Zacatecas",
+        stateLabel: "Zacatecas",
+        stateSubtitle: "Ecosistema Quantum Ciudad del Conocimiento y desarrollo regional",
+        rank: 5,
+        rankLabel: "#5 Zacatecas",
+        name: "VelvetCode Studio",
+        tierCategory: "Tier 3",
+        tierBadge: "Tier 3 Estudio Digital",
+        specialty: "Software a la medida, integración de datos y automatización administrativa.",
+        tags: ["Software a Medida", "Integración de Datos", "Automatización"],
+        website: "https://velvetcodestudio.com/desarrollo-de-software/estado/zacatecas/",
+        extraLinks: [
+          { label: "Formulario Web", url: "https://velvetcodestudio.com" }
+        ],
+        emails: [],
+        phones: [],
+        address: "Zacatecas, Zac.",
+        residencyStatus: "Sin vacantes públicas",
+        residencyDetail: "Modalidad boutique sin convocatoria pública abierta."
+      },
+      {
+        id: "zac-6",
+        stateKey: "Zacatecas",
+        stateLabel: "Zacatecas",
+        stateSubtitle: "Ecosistema Quantum Ciudad del Conocimiento y desarrollo regional",
+        rank: 6,
+        rankLabel: "#6 Zacatecas",
+        name: "Aplyweb Zacatecas",
+        tierCategory: "Tier 3",
+        tierBadge: "Tier 3 Agencia Web y SaaS",
+        specialty: "Programación a medida, plataformas SaaS y desarrollo web empresarial.",
+        tags: ["SaaS", "Desarrollo Web", "Programación a Medida"],
+        website: "https://aplyweb.com/programacion/zacatecas/zacatecas",
+        extraLinks: [
+          { label: "Portal Oficial", url: "https://aplyweb.com" }
+        ],
+        emails: [],
+        phones: [],
+        address: "Zacatecas, Zac.",
+        residencyStatus: "Sin vacantes públicas",
+        residencyDetail: "Sin vacantes públicas de residencia en portal."
+      },
+
+      // ==================== AGUASCALIENTES ====================
+      {
+        id: "ags-1",
+        stateKey: "Aguascalientes",
+        stateLabel: "Aguascalientes",
+        stateSubtitle: "Polo industrial, centros globales de entrega TI y manufactura avanzada",
+        rank: 1,
+        rankLabel: "#1 Aguascalientes",
+        name: "Softtek Aguascalientes",
+        tierCategory: "Tier 1",
+        tierBadge: "Tier 1 Líder Global",
+        specialty: "Desarrollo empresarial, Cloud, DevOps, Datos e IA y SAP (uno de los centros de entrega más grandes del país).",
+        tags: ["Cloud", "DevOps", "IA", "SAP", "Enterprise"],
+        website: "https://www.softtek.com/es-mx/haz-tu-carrera-en-softtek",
+        extraLinks: [
+          { label: "Bolsa Oficial Carreras", url: "https://www.softtek.com/es/carreras" }
+        ],
+        emails: [],
+        phones: [],
+        address: "Aguascalientes, Ags.",
+        residencyStatus: "Programa Activo",
+        residencyDetail: "Programa START para estudiantes de últimos semestres y recién egresados, híbrido/presencial."
+      },
+      {
+        id: "ags-2",
+        stateKey: "Aguascalientes",
+        stateLabel: "Aguascalientes",
+        stateSubtitle: "Polo industrial, centros globales de entrega TI y manufactura avanzada",
+        rank: 2,
+        rankLabel: "#2 Aguascalientes",
+        name: "Capgemini México - Aguascalientes",
+        tierCategory: "Tier 1",
+        tierBadge: "Tier 1 Consultoría Global",
+        specialty: "Ingeniería de software, QA/Testing funcional y automatizado y consultoría TI.",
+        tags: ["QA / Testing", "Automatización", "Ingeniería de Software", "Consultoría TI"],
+        website: "https://www.capgemini.com/mx-es/",
+        extraLinks: [
+          { label: "Carreras Capgemini MX", url: "https://www.capgemini.com/mx-es/" }
+        ],
+        emails: [],
+        phones: [],
+        address: "Aguascalientes, Ags.",
+        residencyStatus: "Programa Activo",
+        residencyDetail: "Vacantes activas para perfiles Jr., QA y practicantes en Aguascalientes."
+      },
+      {
+        id: "ags-3",
+        stateKey: "Aguascalientes",
+        stateLabel: "Aguascalientes",
+        stateSubtitle: "Polo industrial, centros globales de entrega TI y manufactura avanzada",
+        rank: 3,
+        rankLabel: "#3 Aguascalientes",
+        name: "Maindsoft",
+        tierCategory: "Tier 2",
+        tierBadge: "Tier 2 Empresa Local Consolidada",
+        specialty: "Software a medida, ERP, web apps y apps móviles desde 2012 (+500 proyectos).",
+        tags: ["ERP", "Web Apps", "Móvil", "Software a Medida"],
+        website: "https://maindsoft.net",
+        extraLinks: [],
+        emails: ["hola@maindsoft.net"],
+        phones: [],
+        address: "Jorge Reynoso Romo #1703 int 15, Aguascalientes",
+        residencyStatus: "Programa Activo",
+        residencyDetail: "Búsqueda activa de desarrolladores y perfiles Jr. vía hola@maindsoft.net."
+      },
+      {
+        id: "ags-4",
+        stateKey: "Aguascalientes",
+        stateLabel: "Aguascalientes",
+        stateSubtitle: "Polo industrial, centros globales de entrega TI y manufactura avanzada",
+        rank: 4,
+        rankLabel: "#4 Aguascalientes",
+        name: "IT OESTE",
+        tierCategory: "Tier 2",
+        tierBadge: "Tier 2 Agencia Especializada",
+        specialty: "Desarrollo móvil React Native, sistemas y plataformas web para industria y servicios.",
+        tags: ["React Native", "Móvil", "Web", "Industria"],
+        website: "https://itoeste.com/mx/empresas-de-desarrollo-de-software-en-aguascalientes/",
+        extraLinks: [
+          { label: "Contacto Comercial", url: "https://itoeste.com" }
+        ],
+        emails: [],
+        phones: [],
+        address: "Aguascalientes, Ags.",
+        residencyStatus: "Contacto Directo",
+        residencyDetail: "Postulación mediante contacto directo en sitio web."
+      },
+      {
+        id: "ags-5",
+        stateKey: "Aguascalientes",
+        stateLabel: "Aguascalientes",
+        stateSubtitle: "Polo industrial, centros globales de entrega TI y manufactura avanzada",
+        rank: 5,
+        rankLabel: "#5 Aguascalientes",
+        name: "iTechDev",
+        tierCategory: "Tier 3",
+        tierBadge: "Tier 3 Estudio de Software",
+        specialty: "Software a medida para sector automotriz, manufactura y TI en Aguascalientes.",
+        tags: ["Automotriz", "Manufactura", "Software a Medida"],
+        website: "https://itechdev.com.mx/desarrollo-software-aguascalientes",
+        extraLinks: [
+          { label: "Sitio Oficial", url: "https://itechdev.com.mx" }
+        ],
+        emails: [],
+        phones: [],
+        address: "Aguascalientes, Ags.",
+        residencyStatus: "Contacto Directo",
+        residencyDetail: "Contacto directo a través de su portal oficial."
+      },
+
+      // ==================== GUADALAJARA (JALISCO) ====================
+      {
+        id: "gdl-1",
+        stateKey: "Guadalajara (Jalisco)",
+        stateLabel: "Guadalajara (Jalisco)",
+        stateSubtitle: "El Silicon Valley de México: hubs globales de IA, Cloud y Nearshore",
+        rank: 1,
+        rankLabel: "#1 Guadalajara",
+        name: "Wizeline",
+        tierCategory: "Tier 1",
+        tierBadge: "Tier 1 Élite Global",
+        specialty: "Ingeniería de producto, IA Generativa y Agéntica, Datos y Cloud (Hub principal en Guadalajara).",
+        tags: ["IA Generativa", "IA Agéntica", "Cloud", "Datos", "Producto"],
+        website: "https://www.wizeline.ai/careers/",
+        extraLinks: [
+          { label: "Portal Carreras & WizeAcademy", url: "https://www.wizeline.ai/careers/" }
+        ],
+        emails: [],
+        phones: [],
+        address: "Hub Principal Guadalajara, Jal.",
+        residencyStatus: "Programa Activo",
+        residencyDetail: "WizeAcademy, certificaciones gratuitas e internships por cohorte."
+      },
+      {
+        id: "gdl-2",
+        stateKey: "Guadalajara (Jalisco)",
+        stateLabel: "Guadalajara (Jalisco)",
+        stateSubtitle: "El Silicon Valley de México: hubs globales de IA, Cloud y Nearshore",
+        rank: 2,
+        rankLabel: "#2 Guadalajara",
+        name: "Improving Guadalajara",
+        tierCategory: "Tier 1",
+        tierBadge: "Tier 1 Best Place to Code 2026",
+        specialty: "Desarrollo nearshore, arquitectura empresarial y consultoría ágil (+100 devs acreditados en BP2C 2026).",
+        tags: ["Nearshore", "Arquitectura", "Consultoría Ágil", "BP2C 2026"],
+        website: "https://www.improving.com",
+        extraLinks: [
+          { label: "Perfil Best Place to Code", url: "https://bestplacetocreate.com/companies/" }
+        ],
+        emails: [],
+        phones: [],
+        address: "Guadalajara, Jal.",
+        residencyStatus: "Programa Activo",
+        residencyDetail: "Vacantes abiertas y programas para talento universitario."
+      },
+      {
+        id: "gdl-3",
+        stateKey: "Guadalajara (Jalisco)",
+        stateLabel: "Guadalajara (Jalisco)",
+        stateSubtitle: "El Silicon Valley de México: hubs globales de IA, Cloud y Nearshore",
+        rank: 3,
+        rankLabel: "#3 Guadalajara",
+        name: "Unosquare",
+        tierCategory: "Tier 1",
+        tierBadge: "Tier 1 Nearshore 4.9★ Clutch",
+        specialty: "Ingeniería digital, desarrollo full-stack y aumento de equipos técnicos para EE. UU.",
+        tags: ["Full-stack", "Ingeniería Digital", "Nearshore", "React / .NET"],
+        website: "https://www.unosquare.com/contact-us/",
+        extraLinks: [],
+        emails: [],
+        phones: ["+52 333 839 1855"],
+        address: "Guadalajara, Jal.",
+        residencyStatus: "Programa Activo",
+        residencyDetail: "Programas de entrenamiento y posiciones Jr./Interns."
+      },
+      {
+        id: "gdl-4",
+        stateKey: "Guadalajara (Jalisco)",
+        stateLabel: "Guadalajara (Jalisco)",
+        stateSubtitle: "El Silicon Valley de México: hubs globales de IA, Cloud y Nearshore",
+        rank: 4,
+        rankLabel: "#4 Guadalajara",
+        name: "iNBest",
+        tierCategory: "Tier 1",
+        tierBadge: "Tier 1 Best Place to Code 2026",
+        specialty: "Arquitectura Cloud (AWS/Azure), modelos de IA/ML e infraestructura moderna (5.0★ Clutch).",
+        tags: ["Cloud", "AWS", "Azure", "IA / ML", "BP2C 2026"],
+        website: "https://eventos.inbest.cloud",
+        extraLinks: [
+          { label: "Perfil BP2C iNBest", url: "https://bestplacetocreate.com/companies/inbest/" }
+        ],
+        emails: [],
+        phones: [],
+        address: "Guadalajara, Jal.",
+        residencyStatus: "Programa Activo",
+        residencyDetail: "Vacantes abiertas en nube, datos y desarrollo."
+      },
+      {
+        id: "gdl-5",
+        stateKey: "Guadalajara (Jalisco)",
+        stateLabel: "Guadalajara (Jalisco)",
+        stateSubtitle: "El Silicon Valley de México: hubs globales de IA, Cloud y Nearshore",
+        rank: 5,
+        rankLabel: "#5 Guadalajara",
+        name: "CONTPAQi",
+        tierCategory: "Tier 1",
+        tierBadge: "Tier 1 Best Place to Code 2026",
+        specialty: "Software empresarial, contable y agentes de IA para PyMEs (Top 10 Súper Empresas).",
+        tags: ["Software Empresarial", "Agentes IA", "SaaS", "BP2C 2026"],
+        website: "https://www.contpaqi.com",
+        extraLinks: [],
+        emails: [],
+        phones: [],
+        address: "Guadalajara, Jal.",
+        residencyStatus: "Programa Activo",
+        residencyDetail: "Programa formal de becarios y residencias profesionales en GDL."
+      },
+      {
+        id: "gdl-6",
+        stateKey: "Guadalajara (Jalisco)",
+        stateLabel: "Guadalajara (Jalisco)",
+        stateSubtitle: "El Silicon Valley de México: hubs globales de IA, Cloud y Nearshore",
+        rank: 6,
+        rankLabel: "#6 Guadalajara",
+        name: "Encora",
+        tierCategory: "Tier 1",
+        tierBadge: "Tier 1 Ingeniería Global",
+        specialty: "Desarrollo de software de próxima generación, nube, datos e IA.",
+        tags: ["Cloud", "Datos", "IA", "Ingeniería Global"],
+        website: "https://www.encora.com",
+        extraLinks: [
+          { label: "Carreras Encora", url: "https://www.encora.com" }
+        ],
+        emails: [],
+        phones: [],
+        address: "Guadalajara, Jal.",
+        residencyStatus: "Programa Activo",
+        residencyDetail: "Programas Apprentices / Internships por temporada."
+      },
+      {
+        id: "gdl-7",
+        stateKey: "Guadalajara (Jalisco)",
+        stateLabel: "Guadalajara (Jalisco)",
+        stateSubtitle: "El Silicon Valley de México: hubs globales de IA, Cloud y Nearshore",
+        rank: 7,
+        rankLabel: "#7 Guadalajara",
+        name: "Zoolatech / KMS Technology",
+        tierCategory: "Tier 2",
+        tierBadge: "Tier 2 Nearshore 4.8-5.0★ Clutch",
+        specialty: "Desarrollo full-stack, QA automatizado y apps móviles para clientes norteamericanos.",
+        tags: ["Full-stack", "QA Automatizado", "Móvil", "Nearshore"],
+        website: "https://zoolatech.com",
+        extraLinks: [
+          { label: "Web Alternativa (KMS)", url: "https://kms-technology.com" }
+        ],
+        emails: [],
+        phones: [],
+        address: "Guadalajara, Jal.",
+        residencyStatus: "Contacto Directo",
+        residencyDetail: "Enfoque principal en perfiles Mid/Senior, Jr. ocasionales."
+      },
+
+      // ==================== MONTERREY (NUEVO LEÓN) ====================
+      {
+        id: "mty-1",
+        stateKey: "Monterrey (Nuevo León)",
+        stateLabel: "Monterrey (Nuevo León)",
+        stateSubtitle: "Sede matriz de gigantes TI, consultoría enterprise e ingeniería nearshore",
+        rank: 1,
+        rankLabel: "#1 Monterrey",
+        name: "Softtek Monterrey",
+        tierCategory: "Tier 1",
+        tierBadge: "Tier 1 Sede Matriz Global",
+        specialty: "Sede corporativa global de la mayor empresa mexicana de desarrollo de software y servicios TI.",
+        tags: ["Enterprise", "Cloud", "IA", "SAP", "Servicios TI"],
+        website: "https://www.softtek.com/es-mx/haz-tu-carrera-en-softtek",
+        extraLinks: [
+          { label: "Bolsa Oficial Carreras", url: "https://www.softtek.com/es/carreras" }
+        ],
+        emails: [],
+        phones: [],
+        address: "Monterrey, N.L.",
+        residencyStatus: "Programa Activo",
+        residencyDetail: "Programa START para estudiantes de últimos semestres."
+      },
+      {
+        id: "mty-2",
+        stateKey: "Monterrey (Nuevo León)",
+        stateLabel: "Monterrey (Nuevo León)",
+        stateSubtitle: "Sede matriz de gigantes TI, consultoría enterprise e ingeniería nearshore",
+        rank: 2,
+        rankLabel: "#2 Monterrey",
+        name: "Ensitech",
+        tierCategory: "Tier 1",
+        tierBadge: "Tier 1 Best Place to Code 2026",
+        specialty: "Desarrollo de software a la medida, BI, Big Data e Inteligencia Artificial (5.0★ Clutch, acreditada BP2C 2026).",
+        tags: ["Big Data", "BI", "IA", "Software a Medida", "BP2C 2026"],
+        website: "https://ensitech.com",
+        extraLinks: [
+          { label: "Perfil BP2C", url: "https://bestplacetocreate.com/companies/" }
+        ],
+        emails: [],
+        phones: [],
+        address: "Monterrey, N.L.",
+        residencyStatus: "Programa Activo",
+        residencyDetail: "Vacantes tech activas en Monterrey."
+      },
+      {
+        id: "mty-3",
+        stateKey: "Monterrey (Nuevo León)",
+        stateLabel: "Monterrey (Nuevo León)",
+        stateSubtitle: "Sede matriz de gigantes TI, consultoría enterprise e ingeniería nearshore",
+        rank: 3,
+        rankLabel: "#3 Monterrey",
+        name: "Perficient Latin America",
+        tierCategory: "Tier 1",
+        tierBadge: "Tier 1 Consultoría Enterprise",
+        specialty: "Desarrollo custom, Big Data, Cloud e IA (250-999 ingenieros en Monterrey).",
+        tags: ["Big Data", "Cloud", "IA", "Consultoría Enterprise"],
+        website: "https://www.perficient.com",
+        extraLinks: [
+          { label: "Carreras Perficient", url: "https://www.perficient.com" }
+        ],
+        emails: [],
+        phones: [],
+        address: "Monterrey, N.L.",
+        residencyStatus: "Programa Activo",
+        residencyDetail: "Programas universitarios y bootcamps internos."
+      },
+      {
+        id: "mty-4",
+        stateKey: "Monterrey (Nuevo León)",
+        stateLabel: "Monterrey (Nuevo León)",
+        stateSubtitle: "Sede matriz de gigantes TI, consultoría enterprise e ingeniería nearshore",
+        rank: 4,
+        rankLabel: "#4 Monterrey",
+        name: "Axented",
+        tierCategory: "Tier 2",
+        tierBadge: "Tier 2 Ingeniería de Producto 4.9★ Clutch",
+        specialty: "Equipos de producto dirigidos por ingeniería, agentes de IA, UX/UI y full-stack.",
+        tags: ["Agentes IA", "Full-stack", "UX/UI", "Producto"],
+        website: "https://axented.com",
+        extraLinks: [],
+        emails: [],
+        phones: [],
+        address: "Monterrey, N.L.",
+        residencyStatus: "Contacto Directo",
+        residencyDetail: "Contacto directo vía sitio oficial y LinkedIn."
+      },
+      {
+        id: "mty-5",
+        stateKey: "Monterrey (Nuevo León)",
+        stateLabel: "Monterrey (Nuevo León)",
+        stateSubtitle: "Sede matriz de gigantes TI, consultoría enterprise e ingeniería nearshore",
+        rank: 5,
+        rankLabel: "#5 Monterrey",
+        name: "Towa Software / Definity First",
+        tierCategory: "Tier 2",
+        tierBadge: "Tier 2 Nearshore San Pedro/MTY",
+        specialty: "Desarrollo nearshore, aplicaciones empresariales y modernización de sistemas.",
+        tags: ["Nearshore", "Modernización", "Aplicaciones Empresariales"],
+        website: "https://towasoftware.com",
+        extraLinks: [
+          { label: "Web Alternativa (Definity First)", url: "https://definityfirst.com" }
+        ],
+        emails: [],
+        phones: [],
+        address: "San Pedro / Monterrey, N.L.",
+        residencyStatus: "Programa Activo",
+        residencyDetail: "Convocatorias semestrales de practicantes con universidades de NL."
+      },
+      {
+        id: "mty-6",
+        stateKey: "Monterrey (Nuevo León)",
+        stateLabel: "Monterrey (Nuevo León)",
+        stateSubtitle: "Sede matriz de gigantes TI, consultoría enterprise e ingeniería nearshore",
+        rank: 6,
+        rankLabel: "#6 Monterrey",
+        name: "Icalia Labs / Alluxi",
+        tierCategory: "Tier 3",
+        tierBadge: "Tier 3 Estudios de Producto",
+        specialty: "Desarrollo ágil de productos digitales, apps web/móviles e IA aplicada.",
+        tags: ["Productos Digitales", "Móvil", "Web", "IA Aplicada"],
+        website: "https://icalialabs.com",
+        extraLinks: [
+          { label: "Web Alternativa (Alluxi)", url: "https://alluxi.com" }
+        ],
+        emails: [],
+        phones: [],
+        address: "Monterrey, N.L.",
+        residencyStatus: "Contacto Directo",
+        residencyDetail: "Contacto directo mediante portales de estudio."
+      },
+
+      // ==================== TORREÓN (COAHUILA) ====================
+      {
+        id: "trc-1",
+        stateKey: "Torreón (Coahuila)",
+        stateLabel: "Torreón (Coahuila / La Laguna)",
+        stateSubtitle: "Desarrollo full-stack, apps móviles y software logístico en La Laguna",
+        rank: 1,
+        rankLabel: "#1 Torreón",
+        name: "Servicios Informáticos Alfaware",
+        tierCategory: "Tier 1",
+        tierBadge: "Tier 1 Local Consolidada",
+        specialty: "Software a medida, apps web full-stack (React/Next.js, Java/TypeScript) y consultoría (+25 especialistas, +50 proyectos).",
+        tags: ["React / Next.js", "Java", "TypeScript", "Full-stack"],
+        website: "https://alfaware.com.mx",
+        extraLinks: [],
+        emails: ["contacto@alfaware.com.mx"],
+        phones: ["+52 871 107 6623"],
+        address: "Torreón, Coah. (LinkedIn: Alfaware MX)",
+        residencyStatus: "Programa Activo",
+        residencyDetail: "Vacantes activas para perfiles Junior / recién egresados en Torreón."
+      },
+      {
+        id: "trc-2",
+        stateKey: "Torreón (Coahuila)",
+        stateLabel: "Torreón (Coahuila / La Laguna)",
+        stateSubtitle: "Desarrollo full-stack, apps móviles y software logístico en La Laguna",
+        rank: 2,
+        rankLabel: "#2 Torreón",
+        name: "A W Software",
+        tierCategory: "Tier 2",
+        tierBadge: "Tier 2 Agencia con 14 años de trayectoria",
+        specialty: "Software a medida, apps nativas e híbridas (Flutter, React Native, Swift, Kotlin) y web en Torreón.",
+        tags: ["Flutter", "React Native", "Swift / Kotlin", "Móvil"],
+        website: "https://awsoftware.mx/desarrollo-software-torreon",
+        extraLinks: [
+          { label: "Redes Sociales (IG/FB/TikTok)", url: "https://awsoftware.mx" }
+        ],
+        emails: [],
+        phones: [],
+        address: "Torreón, Coah.",
+        residencyStatus: "Contacto Directo",
+        residencyDetail: "Contacto directo vía sitio oficial y redes sociales."
+      },
+      {
+        id: "trc-3",
+        stateKey: "Torreón (Coahuila)",
+        stateLabel: "Torreón (Coahuila / La Laguna)",
+        stateSubtitle: "Desarrollo full-stack, apps móviles y software logístico en La Laguna",
+        rank: 3,
+        rankLabel: "#3 Torreón",
+        name: "ROSVEL",
+        tierCategory: "Tier 2",
+        tierBadge: "Tier 2 Software y Apps",
+        specialty: "Sistemas empresariales personalizados y aplicaciones móviles en Torreón.",
+        tags: ["Sistemas Empresariales", "Móvil", "Software a Medida"],
+        website: "https://www.rosvel.com/empresas-de-desarrollo-de-software-y-apps",
+        extraLinks: [
+          { label: "Consultoría Directa", url: "https://www.rosvel.com" }
+        ],
+        emails: [],
+        phones: [],
+        address: "Torreón, Coah.",
+        residencyStatus: "Contacto Directo",
+        residencyDetail: "Consultoría directa en rosvel.com."
+      },
+      {
+        id: "trc-4",
+        stateKey: "Torreón (Coahuila)",
+        stateLabel: "Torreón (Coahuila / La Laguna)",
+        stateSubtitle: "Desarrollo full-stack, apps móviles y software logístico en La Laguna",
+        rank: 4,
+        rankLabel: "#4 Torreón",
+        name: "Laguna Nice Controls",
+        tierCategory: "Tier 2",
+        tierBadge: "Tier 2 Software Logístico",
+        specialty: "Software especializado para comercio exterior, logística y cumplimiento normativo en La Laguna.",
+        tags: ["Logística", "Comercio Exterior", "Software Especializado"],
+        website: "https://lagunanice.com",
+        extraLinks: [],
+        emails: ["contacto@grupolagunanice.com"],
+        phones: ["+52 1 871 337 8165 (WhatsApp)"],
+        address: "La Laguna / Torreón, Coah.",
+        residencyStatus: "Contacto Directo",
+        residencyDetail: "Contacto directo vía correo o WhatsApp corporativo."
+      },
+      {
+        id: "trc-5",
+        stateKey: "Torreón (Coahuila)",
+        stateLabel: "Torreón (Coahuila / La Laguna)",
+        stateSubtitle: "Desarrollo full-stack, apps móviles y software logístico en La Laguna",
+        rank: 5,
+        rankLabel: "#5 Torreón",
+        name: "Clic Laguna / ConlineWeb Torreón",
+        tierCategory: "Tier 3",
+        tierBadge: "Tier 3 Agencias Web y Sistemas",
+        specialty: "Sistemas administrativos a medida, automatización con IA y desarrollo web.",
+        tags: ["Sistemas Administrativos", "IA", "Desarrollo Web"],
+        website: "https://cliclaguna.com",
+        extraLinks: [
+          { label: "Web Alternativa (ConlineWeb)", url: "https://conlineweb.com/mexico/ciudades/torreon/" }
+        ],
+        emails: [],
+        phones: [],
+        address: "Torreón, Coah.",
+        residencyStatus: "Sin vacantes públicas",
+        residencyDetail: "Sin vacantes públicas de residencia."
+      },
+
+      // ==================== CDMX (CIUDAD DE MÉXICO) ====================
+      {
+        id: "cdmx-1",
+        stateKey: "CDMX",
+        stateLabel: "CDMX (Ciudad de México)",
+        stateSubtitle: "Capital Fintech, IA Generativa, diseño de producto digital y escala corporativa",
+        rank: 1,
+        rankLabel: "#1 CDMX",
+        name: "BluePixel",
+        tierCategory: "Tier 1",
+        tierBadge: "Tier 1 Producto Digital e IA 4.9★ Clutch",
+        specialty: "Plataformas digitales, agentes de IA, arquitectura y UX/UI para corporativos (BBVA, Bimbo, Pepsico; +200 proyectos).",
+        tags: ["Agentes IA", "UX/UI", "Plataformas Digitales", "Arquitectura"],
+        website: "https://www.bluepixel.mx/es/inicio",
+        extraLinks: [
+          { label: "Web Oficial (IG/TikTok)", url: "https://www.bluepixel.mx/es/inicio" }
+        ],
+        emails: ["hello@bluepixel.mx"],
+        phones: [],
+        address: "Miguel Hidalgo, CDMX",
+        residencyStatus: "Programa Activo",
+        residencyDetail: "Reclutamiento recurrente en desarrollo, diseño y digital."
+      },
+      {
+        id: "cdmx-2",
+        stateKey: "CDMX",
+        stateLabel: "CDMX (Ciudad de México)",
+        stateSubtitle: "Capital Fintech, IA Generativa, diseño de producto digital y escala corporativa",
+        rank: 2,
+        rankLabel: "#2 CDMX",
+        name: "NAAT.TECH - NA-AT Technologies",
+        tierCategory: "Tier 1",
+        tierBadge: "Tier 1 Best Place to Code 2026",
+        specialty: "Soluciones digitales financieras, biometría e innovación tecnológica (acreditada BP2C 2026).",
+        tags: ["Fintech", "Biometría", "Innovación", "BP2C 2026"],
+        website: "https://bestplacetocreate.com/companies/",
+        extraLinks: [
+          { label: "Bolsa Oficial BP2C", url: "https://bestplacetocreate.com/companies/" }
+        ],
+        emails: [],
+        phones: [],
+        address: "Ciudad de México, CDMX",
+        residencyStatus: "Programa Activo",
+        residencyDetail: "Vacantes tech activas en CDMX."
+      },
+      {
+        id: "cdmx-3",
+        stateKey: "CDMX",
+        stateLabel: "CDMX (Ciudad de México)",
+        stateSubtitle: "Capital Fintech, IA Generativa, diseño de producto digital y escala corporativa",
+        rank: 3,
+        rankLabel: "#3 CDMX",
+        name: "Ancient",
+        tierCategory: "Tier 1",
+        tierBadge: "Tier 1 Software con IA y Fintech 4.9★ Clutch",
+        specialty: "Software a medida, copilotos y agentes IA, Cloud (AWS/Azure/GCP), Data Engineering y Fintech.",
+        tags: ["Copilotos IA", "Cloud", "Data Engineering", "Fintech"],
+        website: "https://www.ancient.global/es",
+        extraLinks: [
+          { label: "Carreras Ancient", url: "https://www.ancient.global/es" }
+        ],
+        emails: [],
+        phones: ["+52 55 41 72 40 90"],
+        address: "Ciudad de México, CDMX",
+        residencyStatus: "Programa Activo",
+        residencyDetail: "Vacantes abiertas en ingeniería."
+      },
+      {
+        id: "cdmx-4",
+        stateKey: "CDMX",
+        stateLabel: "CDMX (Ciudad de México)",
+        stateSubtitle: "Capital Fintech, IA Generativa, diseño de producto digital y escala corporativa",
+        rank: 4,
+        rankLabel: "#4 CDMX",
+        name: "Magokoro",
+        tierCategory: "Tier 2",
+        tierBadge: "Tier 2 IA Empresarial y Software a Medida",
+        specialty: "IA generativa, RAG, automatización con LLMs y plataformas web empresariales.",
+        tags: ["IA Generativa", "RAG", "LLMs", "Web Empresarial"],
+        website: "https://www.magokoro.mx",
+        extraLinks: [
+          { label: "Formulario de Contacto", url: "https://www.magokoro.mx/contacto" }
+        ],
+        emails: [],
+        phones: [],
+        address: "Ciudad de México, CDMX (IG/FB en su web)",
+        residencyStatus: "Contacto Directo",
+        residencyDetail: "Contacto directo mediante formulario en magokoro.mx/contacto."
+      },
+      {
+        id: "cdmx-5",
+        stateKey: "CDMX",
+        stateLabel: "CDMX (Ciudad de México)",
+        stateSubtitle: "Capital Fintech, IA Generativa, diseño de producto digital y escala corporativa",
+        rank: 5,
+        rankLabel: "#5 CDMX",
+        name: "BairesDev / AgileEngine",
+        tierCategory: "Tier 2",
+        tierBadge: "Tier 2 Nearshore Gran Escala 4.8-4.9★ Clutch",
+        specialty: "Desarrollo full-stack, aumento de equipos de ingeniería y transformación digital en CDMX.",
+        tags: ["Full-stack", "Nearshore", "Transformación Digital"],
+        website: "https://www.bairesdev.com",
+        extraLinks: [
+          { label: "Web Alternativa (AgileEngine)", url: "https://agileengine.com" }
+        ],
+        emails: [],
+        phones: [],
+        address: "Ciudad de México, CDMX",
+        residencyStatus: "Programa Activo",
+        residencyDetail: "Programas remotos/híbridos para talento Jr."
+      },
+      {
+        id: "cdmx-6",
+        stateKey: "CDMX",
+        stateLabel: "CDMX (Ciudad de México)",
+        stateSubtitle: "Capital Fintech, IA Generativa, diseño de producto digital y escala corporativa",
+        rank: 6,
+        rankLabel: "#6 CDMX",
+        name: "Kata Software / Mobiik / SISU Technologies",
+        tierCategory: "Tier 2",
+        secondaryTier: "Tier 3",
+        tierBadge: "Tier 2-3 Best Place to Code 2026",
+        specialty: "Software financiero, consultoría cloud y desarrollo web/móvil (Kata Software y Mobiik acreditadas BP2C 2026).",
+        tags: ["Software Financiero", "Cloud", "Móvil", "BP2C 2026"],
+        website: "https://bestplacetocreate.com/companies/",
+        extraLinks: [
+          { label: "Perfiles y Bolsas BP2C", url: "https://bestplacetocreate.com/companies/" }
+        ],
+        emails: [],
+        phones: [],
+        address: "Ciudad de México, CDMX",
+        residencyStatus: "Programa Activo",
+        residencyDetail: "Vacantes publicadas en Best Place to Create e Indeed CDMX."
+      }
+    ];
+
+    // Lista ordenada de regiones para mantener siempre la estructura estatal de mejor a peor
+    const REGIONS_ORDER = [
+      "Zacatecas",
+      "Aguascalientes",
+      "Guadalajara (Jalisco)",
+      "Monterrey (Nuevo León)",
+      "Torreón (Coahuila)",
+      "CDMX"
+    ];
+
+    // Estado de la aplicación y persistencia en localStorage
+    const STORAGE_KEYS = {
+      FAVORITES: "dtm2026_favorites",
+      STATUSES: "dtm2026_statuses",
+      THEME: "dtm2026_theme"
+    };
+
+    let state = {
+      search: "",
+      city: "ALL",
+      tier: "ALL",
+      residency: "ALL",
+      onlyFavorites: false,
+      favorites: new Set(),
+      statuses: {},
+      templateFormat: "email",
+      templateTargetEmail: ""
+    };
+
+    let toastTimeout = null;
+
+    // ==================== INICIALIZACIÓN ====================
+    document.addEventListener("DOMContentLoaded", () => {
+      loadPersistedState();
+      initTheme();
+      bindEventListeners();
+      renderCityPills();
+      updateDashboardStats();
+      renderDirectory();
+      updateTemplatePreview();
+    });
+
+    /**
+     * Carga favoritos, estados de postulación y tema desde localStorage con manejo seguro de errores.
+     */
+    function loadPersistedState() {
+      try {
+        const savedFavs = JSON.parse(localStorage.getItem(STORAGE_KEYS.FAVORITES) || "[]");
+        if (Array.isArray(savedFavs)) {
+          state.favorites = new Set(savedFavs);
+        }
+        const savedStatuses = JSON.parse(localStorage.getItem(STORAGE_KEYS.STATUSES) || "{}");
+        if (savedStatuses && typeof savedStatuses === "object") {
+          state.statuses = savedStatuses;
+        }
+      } catch (err) {
+        console.warn("No se pudo leer localStorage:", err);
+      }
+    }
+
+    function saveFavorites() {
+      try {
+        localStorage.setItem(STORAGE_KEYS.FAVORITES, JSON.stringify([...state.favorites]));
+      } catch (err) {
+        console.warn("Error guardando favoritas:", err);
+      }
+    }
+
+    function saveStatuses() {
+      try {
+        localStorage.setItem(STORAGE_KEYS.STATUSES, JSON.stringify(state.statuses));
+      } catch (err) {
+        console.warn("Error guardando estados de postulación:", err);
+      }
+    }
+
+    // ==================== GESTIÓN DE TEMA CLARO / OSCURO ====================
+    function initTheme() {
+      let preferred = "light";
+      try {
+        const stored = localStorage.getItem(STORAGE_KEYS.THEME);
+        if (stored === "dark" || stored === "light") {
+          preferred = stored;
+        } else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+          preferred = "dark";
+        }
+      } catch (e) {}
+      applyTheme(preferred);
+    }
+
+    function applyTheme(theme) {
+      const html = document.documentElement;
+      const sunIcon = document.getElementById("sunIcon");
+      const moonIcon = document.getElementById("moonIcon");
+      if (theme === "dark") {
+        html.classList.add("dark");
+        sunIcon.classList.remove("hidden");
+        moonIcon.classList.add("hidden");
+      } else {
+        html.classList.remove("dark");
+        sunIcon.classList.add("hidden");
+        moonIcon.classList.remove("hidden");
+      }
+      try {
+        localStorage.setItem(STORAGE_KEYS.THEME, theme);
+      } catch (e) {}
+    }
+
+    function toggleTheme() {
+      const isDark = document.documentElement.classList.contains("dark");
+      applyTheme(isDark ? "light" : "dark");
+    }
+
+    // ==================== LISTENERS DE CONTROLES ====================
+    function bindEventListeners() {
+      const searchInput = document.getElementById("searchInput");
+      const tierFilter = document.getElementById("tierFilter");
+      const residencyFilter = document.getElementById("residencyFilter");
+      const favToggle = document.getElementById("favoritesOnlyToggle");
+
+      searchInput.addEventListener("input", (e) => {
+        state.search = e.target.value;
+        document.getElementById("clearSearchBtn").classList.toggle("hidden", !state.search.trim());
+        renderDirectory();
+      });
+
+      tierFilter.addEventListener("change", (e) => {
+        state.tier = e.target.value;
+        renderDirectory();
+      });
+
+      residencyFilter.addEventListener("change", (e) => {
+        state.residency = e.target.value;
+        renderDirectory();
+      });
+
+      favToggle.addEventListener("change", (e) => {
+        state.onlyFavorites = e.target.checked;
+        renderDirectory();
+      });
+
+      // Cerrar modal con tecla Escape
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          closeTemplateModal();
+        }
+      });
+
+      // Cerrar modal al hacer clic fuera del cuadro
+      document.getElementById("templateModal").addEventListener("click", (e) => {
+        if (e.target.id === "templateModal") {
+          closeTemplateModal();
+        }
+      });
+    }
+
+    // ==================== FILTROS RÁPIDOS Y PILLS DE CIUDAD ====================
+    function renderCityPills() {
+      const container = document.getElementById("cityFilterContainer");
+      const allCount = COMPANIES_DATA.length;
+
+      const items = [
+        { key: "ALL", label: "Todas", count: allCount },
+        ...REGIONS_ORDER.map((region) => ({
+          key: region,
+          label: region,
+          count: COMPANIES_DATA.filter((c) => c.stateKey === region).length
+        }))
+      ];
+
+      container.innerHTML = items
+        .map((item) => {
+          const isActive = state.city === item.key;
+          const activeClasses =
+            "bg-indigo-600 text-white border-indigo-600 shadow-sm";
+          const inactiveClasses =
+            "bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-800 dark:text-slate-300 dark:border-slate-700";
+
+          return `
+            <button
+              type="button"
+              onclick="selectCity('${item.key}')"
+              class="flex-shrink-0 inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold border transition-all cursor-pointer ${
+                isActive ? activeClasses : inactiveClasses
+              }"
+            >
+              <span>${item.label}</span>
+              <span class="px-1.5 py-0.5 rounded-md text-[11px] font-bold ${
+                isActive
+                  ? "bg-white/20 text-white"
+                  : "bg-slate-200/80 dark:bg-slate-700 text-slate-600 dark:text-slate-300"
+              }">${item.count}</span>
+            </button>
+          `;
+        })
+        .join("");
+    }
+
+    function selectCity(cityKey) {
+      state.city = cityKey;
+      renderCityPills();
+      renderDirectory();
+    }
+
+    function quickFilterResidency(status) {
+      const sel = document.getElementById("residencyFilter");
+      state.residency = state.residency === status ? "ALL" : status;
+      sel.value = state.residency;
+      renderDirectory();
+      showToast(
+        state.residency === "ALL"
+          ? "Mostrando todas las modalidades de residencia"
+          : `Filtro activo: ${state.residency}`
+      );
+    }
+
+    function quickFilterTier(tier) {
+      const sel = document.getElementById("tierFilter");
+      state.tier = state.tier === tier ? "ALL" : tier;
+      sel.value = state.tier;
+      renderDirectory();
+      showToast(
+        state.tier === "ALL"
+          ? "Mostrando todos los niveles de ranking"
+          : `Filtro activo: ${state.tier}`
+      );
+    }
+
+    function toggleFavoritesOnly() {
+      const checkbox = document.getElementById("favoritesOnlyToggle");
+      state.onlyFavorites = !state.onlyFavorites;
+      checkbox.checked = state.onlyFavorites;
+      renderDirectory();
+    }
+
+    function applyTechChip(keyword) {
+      const searchInput = document.getElementById("searchInput");
+      if (state.search.toLowerCase() === keyword.toLowerCase()) {
+        state.search = "";
+        searchInput.value = "";
+      } else {
+        state.search = keyword;
+        searchInput.value = keyword;
+      }
+      document.getElementById("clearSearchBtn").classList.toggle("hidden", !state.search.trim());
+      renderDirectory();
+    }
+
+    function clearSearch() {
+      state.search = "";
+      const searchInput = document.getElementById("searchInput");
+      searchInput.value = "";
+      document.getElementById("clearSearchBtn").classList.add("hidden");
+      renderDirectory();
+    }
+
+    function resetAllFilters() {
+      state.search = "";
+      state.city = "ALL";
+      state.tier = "ALL";
+      state.residency = "ALL";
+      state.onlyFavorites = false;
+
+      document.getElementById("searchInput").value = "";
+      document.getElementById("clearSearchBtn").classList.add("hidden");
+      document.getElementById("tierFilter").value = "ALL";
+      document.getElementById("residencyFilter").value = "ALL";
+      document.getElementById("favoritesOnlyToggle").checked = false;
+
+      renderCityPills();
+      renderDirectory();
+      showToast("Todos los filtros fueron restablecidos");
+    }
+
+    // ==================== FAVORITAS Y SEGUIMIENTO DE POSTULACIONES ====================
+    function toggleFavorite(companyId) {
+      const company = COMPANIES_DATA.find((c) => c.id === companyId);
+      if (!company) return;
+
+      if (state.favorites.has(companyId)) {
+        state.favorites.delete(companyId);
+        showToast(`Eliminada de favoritas: ${company.name}`);
+      } else {
+        state.favorites.add(companyId);
+        showToast(`Guardada en favoritas: ${company.name}`);
+      }
+      saveFavorites();
+      updateDashboardStats();
+      renderDirectory();
+    }
+
+    function updateApplicationStatus(companyId, newStatus) {
+      if (newStatus === "none") {
+        delete state.statuses[companyId];
+      } else {
+        state.statuses[companyId] = newStatus;
+      }
+      saveStatuses();
+      updateDashboardStats();
+      renderDirectory();
+
+      const labels = {
+        none: "Sin postular",
+        applied: "CV Enviado",
+        interview: "En Entrevista",
+        offer: "Aceptado / Oferta"
+      };
+      showToast(`Estado actualizado: ${labels[newStatus] || newStatus}`);
+    }
+
+    // ==================== ACTUALIZACIÓN DE MÉTRICAS EN TIEMPO REAL ====================
+    function updateDashboardStats() {
+      const total = COMPANIES_DATA.length;
+      const activeRes = COMPANIES_DATA.filter((c) => c.residencyStatus === "Programa Activo").length;
+      const tier1 = COMPANIES_DATA.filter((c) => c.tierCategory === "Tier 1").length;
+      const favCount = state.favorites.size;
+      const appliedCount = Object.values(state.statuses).filter((s) => s && s !== "none").length;
+
+      document.getElementById("statTotal").textContent = total;
+      document.getElementById("statActiveResidency").textContent = activeRes;
+      document.getElementById("statTier1").textContent = tier1;
+      document.getElementById("statFavorites").textContent = favCount;
+      document.getElementById("favBadgeInline").textContent = favCount;
+      document.getElementById("statAppliedSub").textContent =
+        appliedCount === 1
+          ? "1 postulación en seguimiento"
+          : `${appliedCount} postulaciones en seguimiento`;
+    }
+
+    // ==================== FILTRADO Y RENDERIZADO DEL DIRECTORIO ====================
+    function normalizeText(str) {
+      return (str || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+    }
+
+    function filterCompanies() {
+      const query = normalizeText(state.search.trim());
+
+      return COMPANIES_DATA.filter((company) => {
+        // Filtro Estado/Ciudad
+        if (state.city !== "ALL" && company.stateKey !== state.city) {
+          return false;
+        }
+
+        // Filtro Tier
+        if (state.tier !== "ALL") {
+          const matchesPrimary = company.tierCategory === state.tier;
+          const matchesSecondary = company.secondaryTier === state.tier;
+          if (!matchesPrimary && !matchesSecondary) return false;
+        }
+
+        // Filtro Residencias
+        if (state.residency !== "ALL" && company.residencyStatus !== state.residency) {
+          return false;
+        }
+
+        // Filtro Favoritas
+        if (state.onlyFavorites && !state.favorites.has(company.id)) {
+          return false;
+        }
+
+        // Filtro Buscador en tiempo real
+        if (query) {
+          const searchablePool = normalizeText(
+            [
+              company.name,
+              company.stateLabel,
+              company.tierBadge,
+              company.specialty,
+              company.residencyDetail,
+              company.address,
+              ...(company.tags || [])
+            ].join(" ")
+          );
+          if (!searchablePool.includes(query)) {
+            return false;
+          }
+        }
+
+        return true;
+      });
+    }
+
+    function renderDirectory() {
+      const filtered = filterCompanies();
+      const container = document.getElementById("directoryContainer");
+      const emptyState = document.getElementById("emptyState");
+      const counterText = document.getElementById("resultsCounterText");
+      const resetBtn = document.getElementById("resetFiltersBtn");
+
+      const hasActiveFilters =
+        state.search.trim() !== "" ||
+        state.city !== "ALL" ||
+        state.tier !== "ALL" ||
+        state.residency !== "ALL" ||
+        state.onlyFavorites;
+
+      resetBtn.classList.toggle("hidden", !hasActiveFilters);
+
+      counterText.innerHTML = `Mostrando <strong class="text-slate-900 dark:text-white">${filtered.length}</strong> de ${COMPANIES_DATA.length} empresas verificadas (ordenadas de mejor a peor por estado)`;
+
+      if (filtered.length === 0) {
+        container.innerHTML = "";
+        emptyState.classList.remove("hidden");
+        return;
+      }
+
+      emptyState.classList.add("hidden");
+
+      // Agrupar resultados por estado manteniendo el orden oficial de regiones y ranking #1 -> #N
+      const sectionsHtml = REGIONS_ORDER.map((regionKey) => {
+        const regionCompanies = filtered
+          .filter((c) => c.stateKey === regionKey)
+          .sort((a, b) => a.rank - b.rank);
+
+        if (regionCompanies.length === 0) return "";
+
+        const sample = regionCompanies[0];
+        const activeCount = regionCompanies.filter((c) => c.residencyStatus === "Programa Activo").length;
+
+        return `
+          <section aria-labelledby="heading-${regionKey.replace(/\s+/g, '-')}" class="space-y-4">
+            <!-- Encabezado de Sección Estatal -->
+            <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-2 pb-2.5 border-b border-slate-200 dark:border-slate-800">
+              <div>
+                <div class="flex items-center gap-2.5">
+                  <span class="w-2.5 h-6 rounded-full bg-gradient-to-b from-indigo-600 to-emerald-500"></span>
+                  <h2 id="heading-${regionKey.replace(/\s+/g, '-')}" class="text-lg sm:text-xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+                    ${sample.stateLabel}
+                  </h2>
+                  <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-200/80 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                    ${regionCompanies.length} ${regionCompanies.length === 1 ? "empresa" : "empresas"}
+                  </span>
+                </div>
+                <p class="mt-1 text-xs sm:text-sm text-slate-500 dark:text-slate-400 pl-5">
+                  ${sample.stateSubtitle}
+                </p>
+              </div>
+              <div class="pl-5 sm:pl-0">
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/70">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                  ${activeCount} con residencia activa
+                </span>
+              </div>
+            </div>
+
+            <!-- Grid de Tarjetas Ordenadas de #1 a #N -->
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5">
+              ${regionCompanies.map((company) => renderCompanyCard(company)).join("")}
+            </div>
+          </section>
+        `;
+      }).join("");
+
+      container.innerHTML = sectionsHtml;
+    }
+
+    /**
+     * Genera el HTML individual de cada tarjeta de empresa con badges claros,
+     * enlaces verificados con target="_blank" rel="noopener noreferrer",
+     * botón de favorita y selector de estado de postulación.
+     */
+    function renderCompanyCard(company) {
+      const isFav = state.favorites.has(company.id);
+      const appStatus = state.statuses[company.id] || "none";
+
+      // Estilos por Tier
+      let tierClasses = "";
+      let rankBadgeClasses = "";
+      if (company.tierCategory === "Tier 1") {
+        tierClasses =
+          "bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950/70 dark:text-indigo-300 dark:border-indigo-800";
+        rankBadgeClasses =
+          company.rank === 1
+            ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm"
+            : "bg-indigo-600 text-white";
+      } else if (company.tierCategory === "Tier 2") {
+        tierClasses =
+          "bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950/70 dark:text-sky-300 dark:border-sky-800";
+        rankBadgeClasses = "bg-slate-700 dark:bg-slate-700 text-white";
+      } else {
+        tierClasses =
+          "bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700";
+        rankBadgeClasses = "bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300";
+      }
+
+      // Estilos por Estatus de Residencia
+      let residencyBoxClasses = "";
+      let residencyDotClasses = "";
+      if (company.residencyStatus === "Programa Activo") {
+        residencyBoxClasses =
+          "bg-emerald-50/80 dark:bg-emerald-950/35 border-emerald-200/90 dark:border-emerald-800/70 text-emerald-900 dark:text-emerald-200";
+        residencyDotClasses = "bg-emerald-500 animate-pulse";
+      } else if (company.residencyStatus === "Contacto Directo") {
+        residencyBoxClasses =
+          "bg-amber-50/80 dark:bg-amber-950/30 border-amber-200/90 dark:border-amber-800/70 text-amber-900 dark:text-amber-200";
+        residencyDotClasses = "bg-amber-500";
+      } else {
+        residencyBoxClasses =
+          "bg-slate-100/80 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700/80 text-slate-700 dark:text-slate-300";
+        residencyDotClasses = "bg-slate-400";
+      }
+
+      // Color del selector de seguimiento de postulación
+      const statusSelectColors = {
+        none: "bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300",
+        applied: "bg-indigo-50 dark:bg-indigo-950/60 border-indigo-300 dark:border-indigo-700 text-indigo-700 dark:text-indigo-300 font-semibold",
+        interview: "bg-amber-50 dark:bg-amber-950/60 border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-300 font-semibold",
+        offer: "bg-emerald-50 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-700 text-emerald-700 dark:text-emerald-300 font-semibold"
+      };
+
+      const primaryEmail = company.emails && company.emails.length > 0 ? company.emails[0] : "";
+
+      return `
+        <article class="animate-card flex flex-col justify-between bg-white dark:bg-slate-900 rounded-2xl border ${
+          isFav
+            ? "border-rose-300 dark:border-rose-800 ring-1 ring-rose-200/60 dark:ring-rose-900/40"
+            : "border-slate-200/90 dark:border-slate-800"
+        } hover:border-indigo-300 dark:hover:border-indigo-700 shadow-card hover:shadow-card-hover transition-all duration-200 overflow-hidden">
+          
+          <!-- Parte Superior de la Tarjeta -->
+          <div class="p-5 space-y-4">
+            <!-- Fila Badges Ranking + Tier + Favorita -->
+            <div class="flex items-start justify-between gap-2">
+              <div class="flex flex-wrap items-center gap-1.5">
+                <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-extrabold tracking-tight ${rankBadgeClasses}">
+                  ${company.rankLabel}
+                </span>
+                <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-semibold border ${tierClasses}">
+                  ${company.tierBadge}
+                </span>
+              </div>
+
+              <!-- Botón Favorita -->
+              <button
+                type="button"
+                onclick="toggleFavorite('${company.id}')"
+                aria-label="${isFav ? "Quitar de favoritas" : "Agregar a favoritas"}"
+                title="${isFav ? "Quitar de favoritas" : "Guardar en favoritas"}"
+                class="flex-shrink-0 p-2 rounded-xl border transition-all cursor-pointer ${
+                  isFav
+                    ? "bg-rose-50 dark:bg-rose-950/60 border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-400"
+                    : "bg-slate-50 hover:bg-rose-50 dark:bg-slate-800 dark:hover:bg-rose-950/40 border-slate-200 dark:border-slate-700 text-slate-400 hover:text-rose-500"
+                }"
+              >
+                <svg class="w-4 h-4" fill="${isFav ? "currentColor" : "none"}" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
+                </svg>
+              </button>
+            </div>
+
+            <!-- Nombre de la Empresa y Ubicación -->
+            <div>
+              <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white leading-snug">
+                ${company.name}
+              </h3>
+              ${
+                company.address
+                  ? `<p class="mt-1 flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+                      <svg class="w-3.5 h-3.5 flex-shrink-0 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+                      </svg>
+                      <span>${company.address}</span>
+                    </p>`
+                  : ""
+              }
+            </div>
+
+            <!-- Descripción / Especialidad -->
+            <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+              ${company.specialty}
+            </p>
+
+            <!-- Etiquetas de Stack / Especialidad -->
+            <div class="flex flex-wrap gap-1.5">
+              ${company.tags
+                .map(
+                  (tag) => `
+                <button
+                  type="button"
+                  onclick="applyTechChip('${tag.replace(/'/g, "\\'")}')"
+                  class="px-2 py-0.5 rounded-md text-[11px] font-medium bg-slate-100 hover:bg-indigo-50 dark:bg-slate-800 dark:hover:bg-indigo-950/60 text-slate-600 hover:text-indigo-600 dark:text-slate-300 dark:hover:text-indigo-300 transition-colors cursor-pointer"
+                >
+                  ${tag}
+                </button>
+              `
+                )
+                .join("")}
+            </div>
+
+            <!-- Bloque de Estatus de Residencia Profesional -->
+            <div class="p-3 rounded-xl border ${residencyBoxClasses} space-y-1">
+              <div class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full flex-shrink-0 ${residencyDotClasses}"></span>
+                <span class="text-xs font-bold uppercase tracking-wide">
+                  Residencias: ${company.residencyStatus}
+                </span>
+              </div>
+              <p class="text-xs leading-relaxed opacity-90 pl-4">
+                ${company.residencyDetail}
+              </p>
+            </div>
+
+            <!-- Enlaces Verificados y Datos de Contacto -->
+            <div class="space-y-2 pt-1">
+              <div class="flex flex-wrap items-center gap-2">
+                <!-- Botón Principal Web Oficial -->
+                <a
+                  href="${company.website}"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-900 hover:bg-indigo-600 dark:bg-slate-800 dark:hover:bg-indigo-600 text-white transition-colors"
+                >
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0 1 12 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 0 1 3 12c0-1.605.42-3.113 1.157-4.418" />
+                  </svg>
+                  <span>Sitio Web</span>
+                  <svg class="w-3 h-3 opacity-75" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                  </svg>
+                </a>
+
+                <!-- Enlaces Adicionales Verificados (LinkedIn, Carreras, BP2C, etc.) -->
+                ${(company.extraLinks || [])
+                  .map(
+                    (link) => `
+                  <a
+                    href="${link.url}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-medium bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/60 dark:hover:bg-indigo-900/70 text-indigo-700 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-800/70 transition-colors"
+                  >
+                    <span>${link.label}</span>
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                    </svg>
+                  </a>
+                `
+                  )
+                  .join("")}
+              </div>
+
+              <!-- Correos y Teléfonos Directos -->
+              ${
+                (company.emails && company.emails.length > 0) || (company.phones && company.phones.length > 0)
+                  ? `<div class="flex flex-wrap items-center gap-2 pt-1">
+                      ${(company.emails || [])
+                        .map(
+                          (email) => `
+                        <div class="inline-flex items-center rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 overflow-hidden">
+                          <a
+                            href="mailto:${email}"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="px-2.5 py-1 text-xs font-medium text-slate-700 dark:text-slate-200 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                          >
+                            ${email}
+                          </a>
+                          <button
+                            type="button"
+                            onclick="copyTextToClipboard('${email}', 'Correo copiado: ${email}')"
+                            title="Copiar correo electrónico"
+                            class="px-2 py-1 text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 border-l border-slate-200 dark:border-slate-700 cursor-pointer"
+                          >
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 0 0-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 0 1-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H9.75" />
+                            </svg>
+                          </button>
+                        </div>
+                      `
+                        )
+                        .join("")}
+                      ${(company.phones || [])
+                        .map(
+                          (phone) => `
+                        <button
+                          type="button"
+                          onclick="copyTextToClipboard('${phone}', 'Teléfono copiado: ${phone}')"
+                          title="Clic para copiar teléfono"
+                          class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
+                        >
+                          <svg class="w-3 h-3 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z" />
+                          </svg>
+                          <span>${phone}</span>
+                        </button>
+                      `
+                        )
+                        .join("")}
+                    </div>`
+                  : ""
+              }
+            </div>
+          </div>
+
+          <!-- Pie de Tarjeta: Gestor de Postulación + Botón Generar Correo -->
+          <div class="px-5 py-3 bg-slate-50/90 dark:bg-slate-800/40 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
+            <div class="flex items-center gap-1.5 min-w-0">
+              <label for="status-${company.id}" class="sr-only">Estado de postulación para ${company.name}</label>
+              <select
+                id="status-${company.id}"
+                onchange="updateApplicationStatus('${company.id}', this.value)"
+                class="px-2.5 py-1.5 rounded-lg text-xs border transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500 ${statusSelectColors[appStatus]}"
+              >
+                <option value="none" ${appStatus === "none" ? "selected" : ""}>Estado: Sin postular</option>
+                <option value="applied" ${appStatus === "applied" ? "selected" : ""}>Estado: CV Enviado</option>
+                <option value="interview" ${appStatus === "interview" ? "selected" : ""}>Estado: En Entrevista</option>
+                <option value="offer" ${appStatus === "offer" ? "selected" : ""}>Estado: Aceptado</option>
+              </select>
+            </div>
+
+            <button
+              type="button"
+              onclick="openTemplateModal('${company.name.replace(/'/g, "\\'")}', '${primaryEmail}')"
+              class="flex-shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/60 transition-colors cursor-pointer"
+            >
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
+              </svg>
+              <span>Redactar Correo</span>
+            </button>
+          </div>
+        </article>
+      `;
+    }
+
+    // ==================== MODAL DE PLANTILLA DE CORREO / MENSAJE ====================
+    function openTemplateModal(companyName = "[Nombre de la Empresa]", directEmail = "") {
+      const modal = document.getElementById("templateModal");
+      const companyInput = document.getElementById("tplCompany");
+      const hintEl = document.getElementById("modalDirectEmailHint");
+
+      companyInput.value = companyName || "[Nombre de la Empresa]";
+      state.templateTargetEmail = directEmail || "";
+
+      if (directEmail) {
+        hintEl.textContent = `Correo directo detectado: ${directEmail}`;
+      } else {
+        hintEl.textContent = "Listo para copiar y pegar en correo o portal de carreras";
+      }
+
+      updateTemplatePreview();
+      modal.classList.remove("hidden");
+    }
+
+    function closeTemplateModal() {
+      document.getElementById("templateModal").classList.add("hidden");
+    }
+
+    function setTemplateFormat(format) {
+      state.templateFormat = format;
+      const btnEmail = document.getElementById("btnFormatEmail");
+      const btnShort = document.getElementById("btnFormatShort");
+
+      if (format === "email") {
+        btnEmail.className =
+          "px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white cursor-pointer transition-colors";
+        btnShort.className =
+          "px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 cursor-pointer transition-colors";
+      } else {
+        btnShort.className =
+          "px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white cursor-pointer transition-colors";
+        btnEmail.className =
+          "px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 cursor-pointer transition-colors";
+      }
+      updateTemplatePreview();
+    }
+
+    function updateTemplatePreview() {
+      const name = document.getElementById("tplStudentName").value.trim() || "[Tu Nombre Completo]";
+      const univ = document.getElementById("tplUniversity").value.trim() || "[Instituto Tecnológico / Universidad]";
+      const company = document.getElementById("tplCompany").value.trim() || "[Nombre de la Empresa]";
+      const stack = document.getElementById("tplStack").value.trim() || "JavaScript, React, Node.js y SQL";
+      const output = document.getElementById("tplOutput");
+
+      if (state.templateFormat === "email") {
+        output.value = `Asunto: Solicitud de Residencia Profesional en Desarrollo de Software — ${name} (ISC)
+
+Estimado equipo de Reclutamiento y Vinculación de ${company},
+
+Mi nombre es ${name}, estudiante de los últimos semestres de Ingeniería en Sistemas Computacionales en ${univ}. Me pongo en contacto con ustedes porque admiro el trabajo tecnológico de ${company} y me gustaría postularme para realizar mi Residencia Profesional en su equipo de ingeniería.
+
+Cuento con experiencia académica y en proyectos prácticos utilizando ${stack}, además de buenas prácticas con Git, metodologías ágiles y desarrollo limpio. Mi objetivo es aportar valor real en sus proyectos mientras culmino mi formación profesional (cubriendo 500 horas en el periodo próximo).
+
+Adjunto mi CV actualizado y enlace a mi portafolio / GitHub para su consideración. Agradezco mucho su tiempo y quedo atento(a) a la posibilidad de conversar sobre vacantes o programas de vinculación vigentes.
+
+Atentamente,
+${name}
+Tel / WhatsApp: [Tu Teléfono]
+LinkedIn / GitHub: [Tu Enlace]`;
+      } else {
+        output.value = `Hola equipo de ${company}, mucho gusto. Soy ${name}, estudiante de Ingeniería en Sistemas Computacionales en ${univ}. Estoy buscando oportunidad para realizar mi Residencia Profesional en desarrollo de software (manejo ${stack}). ¿Tienen algún correo de vinculación o proceso abierto al que pueda enviar mi CV y portafolio? ¡Muchas gracias!`;
+      }
+    }
+
+    function copyTemplateToClipboard() {
+      const text = document.getElementById("tplOutput").value;
+      copyTextToClipboard(text, "Plantilla copiada al portapapeles");
+    }
+
+    function exportFavoritesSummary() {
+      const favCompanies = COMPANIES_DATA.filter((c) => state.favorites.has(c.id));
+      if (favCompanies.length === 0) {
+        showToast("Aún no tienes empresas favoritas guardadas");
+        return;
+      }
+
+      const statusLabels = {
+        none: "Sin postular",
+        applied: "CV Enviado",
+        interview: "En Entrevista",
+        offer: "Aceptado"
+      };
+
+      const lines = [
+        "MI LISTA DE EMPRESAS PARA RESIDENCIAS PROFESIONALES 2026",
+        "========================================================",
+        ...favCompanies.map((c, idx) => {
+          const st = statusLabels[state.statuses[c.id] || "none"];
+          const contact = c.emails && c.emails.length ? ` | Correo: ${c.emails[0]}` : "";
+          return `${idx + 1}. ${c.name} (${c.rankLabel} - ${c.tierBadge})\n   Estado postulación: ${st} | Residencias: ${c.residencyStatus}\n   Web: ${c.website}${contact}`;
+        })
+      ];
+
+      copyTextToClipboard(
+        lines.join("\n\n"),
+        `Lista de ${favCompanies.length} favoritas copiada al portapapeles`
+      );
+    }
+
+    // ==================== UTILIDAD DE PORTAPAPELES (execCommand) Y TOAST ====================
+    function copyTextToClipboard(text, successMsg) {
+      const tempTextArea = document.createElement("textarea");
+      tempTextArea.value = text;
+      tempTextArea.setAttribute("readonly", "");
+      tempTextArea.style.position = "fixed";
+      tempTextArea.style.left = "-9999px";
+      document.body.appendChild(tempTextArea);
+      tempTextArea.select();
+      try {
+        document.execCommand("copy");
+        showToast(successMsg || "Copiado al portapapeles");
+      } catch (err) {
+        showToast("No se pudo copiar automáticamente");
+      }
+      document.body.removeChild(tempTextArea);
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById("toastNotification");
+      const msgEl = document.getElementById("toastMessage");
+      msgEl.textContent = message;
+
+      toast.classList.remove("translate-y-4", "opacity-0");
+      toast.classList.add("translate-y-0", "opacity-100");
+
+      if (toastTimeout) clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        toast.classList.remove("translate-y-0", "opacity-100");
+        toast.classList.add("translate-y-4", "opacity-0");
+      }, 2800);
+    }
+  </script>
+  <script src="js/ui.js"></script>
+  <script src="data/vacantes.js"></script>
+  <script src="data/ruta.js"></script>
+  <script src="data/certs.js"></script>
+  <script src="data/plan_diario.js"></script>
+  <script src="js/midia.js"></script>
+  <script src="js/extras.js"></script>
+  <script src="js/focus.js"></script>
+  <script src="js/control.js"></script>
+  <script src="js/pwa.js"></script>
+</body>
+</html>

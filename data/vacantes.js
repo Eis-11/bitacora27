@@ -12,7 +12,7 @@
  * encaje:       "alto" | "medio" | "bajo"  (fechas ene–jun 2027 + perfil ISC 9° semestre + stack C#/JS/SQL)
  */
 window.VACANTES = {
-  lastUpdated: "2026-11-22",
+  lastUpdated: "2026-11-25",
   searchLog: [
     {
       date: "2026-11-21",
@@ -21,6 +21,10 @@ window.VACANTES = {
     {
       date: "2026-11-22",
       summary: "Búsqueda ampliada a otros estados (Guanajuato, San Luis Potosí, Jalisco, CDMX) y empresas grandes. 9 nuevas verificadas en portales oficiales: Amazon (SDE Intern Zapopan y CDMX), Thomson Reuters, General Motors Silao, Continental SLP, HP, Intel, IBM y Capital One (programa para egresados ago 2027). Cerradas o sin plaza de TI vigente: EY Pasante Tech Risk, GE Aerospace Querétaro, Cemex AI Intern, Bosch IT Intern Program, GIZ."
+    },
+    {
+      date: "2026-11-25",
+      summary: "2 nuevas (agregador): CTA Group León y Antal Automation Querétaro; 0 cerradas. Continental HR Automate Intern (SLP) sigue abierta; Bosch México sin plazas de becario TI. Amazon/Workday/GM/Computrabajo no se pudieron abrir (sin acceso de red) y Deloitte ADMX Querétaro 2027 ya cerró (oct 2026). Regiones: Monterrey, Guadalajara, Querétaro, Guanajuato, Aguascalientes, Coahuila, CDMX y remoto."
     }
   ],
   items: [
@@ -460,6 +464,44 @@ window.VACANTES = {
       encaje: "alto",
       nota: "NO es residencia: es tu primer EMPLEO en cuanto termines (ago 2027). Encaja con tu fecha de egreso y con tu stack C#. Según la prensa, la convocatoria cierra alrededor de marzo 2027: postula durante la residencia.",
       encontrada: "2026-11-22"
+    },
+    {
+      id: "ctagroup-leon-practicante-dev-software",
+      titulo: "Practicante de Desarrollo de Software",
+      empresa: "CTA Group",
+      ciudad: "León, Gto.",
+      region: "Guanajuato",
+      modalidad: "Por confirmar",
+      inicio: "Por confirmar",
+      duracion: "No especificada",
+      pago: "No especificado",
+      requisitos: "Estudiante de Ing. en Sistemas Computacionales, Tecnologías de la Información, Desarrollo de Software o afín.",
+      stack: ["Desarrollo de software"],
+      fuente: "Computrabajo",
+      url: "https://mx.computrabajo.com/ofertas-de-trabajo/oferta-de-trabajo-de-practicante-de-desarollo-de-software-en-leon-211A75C3F392857D61373E686DCF3405",
+      verificacion: "agregador",
+      encaje: "medio",
+      nota: "Piden explícitamente tu carrera. No se pudo abrir la oferta para ver fecha de inicio ni stack: confírmalo antes de postular.",
+      encontrada: "2026-11-25"
+    },
+    {
+      id: "antal-elmarques-practicante-dev-software",
+      titulo: "Practicante para Desarrollo de Software",
+      empresa: "Antal Automation",
+      ciudad: "El Marqués, Qro.",
+      region: "Querétaro",
+      modalidad: "Por confirmar",
+      inicio: "Por confirmar",
+      duracion: "No especificada",
+      pago: "No especificado",
+      requisitos: "Estudiante de sistemas / software (detalle no disponible).",
+      stack: ["Desarrollo de software", "Automatización"],
+      fuente: "Computrabajo (listado de becas/prácticas en El Marqués)",
+      url: "https://mx.computrabajo.com/trabajo-de-programador-junior-en-el-marques-jornada-beca-practicas",
+      verificacion: "agregador",
+      encaje: "medio",
+      nota: "Empresa de automatización industrial. El enlace es el listado: busca la oferta de Antal ahí. En la misma zona aparecieron DATAWARE (practicante de programación, medio tiempo, ~$6,500) y Altegra (practicante de sistemas, ~$6,000).",
+      encontrada: "2026-11-25"
     }
   ]
 };

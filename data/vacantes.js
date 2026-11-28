@@ -12,7 +12,7 @@
  * encaje:       "alto" | "medio" | "bajo"  (fechas ene–jun 2027 + perfil ISC 9° semestre + stack C#/JS/SQL)
  */
 window.VACANTES = {
-  lastUpdated: "2026-11-25",
+  lastUpdated: "2026-11-27",
   searchLog: [
     {
       date: "2026-11-21",
@@ -25,6 +25,10 @@ window.VACANTES = {
     {
       date: "2026-11-25",
       summary: "2 nuevas (agregador): CTA Group León y Antal Automation Querétaro; 0 cerradas. Continental HR Automate Intern (SLP) sigue abierta; Bosch México sin plazas de becario TI. Amazon/Workday/GM/Computrabajo no se pudieron abrir (sin acceso de red) y Deloitte ADMX Querétaro 2027 ya cerró (oct 2026). Regiones: Monterrey, Guadalajara, Querétaro, Guanajuato, Aguascalientes, Coahuila, CDMX y remoto."
+    },
+    {
+      date: "2026-11-27",
+      summary: "4 nuevas: GM Silao (Becario Soluciones Digitales, oficial), Toshiba GDL (QA Automation Intern, oficial), Capital One CDMX (Technology Internship 2027, oficial, ago 2027) y un becario remoto de desarrollo (agregador). 2 cerradas: GM becario IA/Visión (404 en el portal) y CTA Group León (oferta retirada). Siguen abiertas: Amazon SDE Intern (Zapopan y CDMX), Thomson Reuters, Intel Silicon Flows, HP y Continental HR Automate. Regiones: Guadalajara, CDMX, Guanajuato, San Luis Potosí, Querétaro, Baja California, Zacatecas, Torreón y remoto."
     }
   ],
   items: [
@@ -365,9 +369,9 @@ window.VACANTES = {
       stack: ["Python", "OpenCV", "PyTorch/TensorFlow", "Git"],
       fuente: "GM Careers (oficial, JR-202624032)",
       url: "https://search-careers.gm.com/en/jobs/jr-202624032/becario-a-de-inteligencia-artificial-y-vision-por-computadora-para-deteccion-de-defectos-en-paneles-de-estampado/",
-      verificacion: "oficial",
+      verificacion: "cerrada",
       encaje: "medio",
-      nota: "Tu carrera aparece explícitamente. Es Python/IA, no C#; muy buen proyecto de residencia (problema real y medible).",
+      nota: "CERRADA (27 nov 2026: la publicación da 404 en el portal de GM y ya no aparece en el listado). Era Python/IA; GM Silao sigue publicando becarios: revisa la nueva de Soluciones Digitales.",
       encontrada: "2026-11-22"
     },
     {
@@ -479,9 +483,9 @@ window.VACANTES = {
       stack: ["Desarrollo de software"],
       fuente: "Computrabajo",
       url: "https://mx.computrabajo.com/ofertas-de-trabajo/oferta-de-trabajo-de-practicante-de-desarollo-de-software-en-leon-211A75C3F392857D61373E686DCF3405",
-      verificacion: "agregador",
+      verificacion: "cerrada",
       encaje: "medio",
-      nota: "Piden explícitamente tu carrera. No se pudo abrir la oferta para ver fecha de inicio ni stack: confírmalo antes de postular.",
+      nota: "CERRADA (27 nov 2026: Computrabajo ya redirige la oferta al listado general de Guanajuato, señal de que fue retirada).",
       encontrada: "2026-11-25"
     },
     {
@@ -502,6 +506,82 @@ window.VACANTES = {
       encaje: "medio",
       nota: "Empresa de automatización industrial. El enlace es el listado: busca la oferta de Antal ahí. En la misma zona aparecieron DATAWARE (practicante de programación, medio tiempo, ~$6,500) y Altegra (practicante de sistemas, ~$6,000).",
       encontrada: "2026-11-25"
+    },
+    {
+      id: "gm-silao-becario-soluciones-digitales", top: true,
+      titulo: "Becario de Innovación y Desarrollo de Soluciones Digitales",
+      empresa: "General Motors",
+      ciudad: "Silao, Gto.",
+      region: "Guanajuato",
+      modalidad: "Presencial, lun–vie 7:00–14:00",
+      inicio: "Por confirmar",
+      duracion: "No especificada",
+      pago: "No especificado",
+      requisitos: "Estudiante activo de Ing. en Sistemas Computacionales, Software, Informática o afín; mínimo un año antes de graduarse; inglés intermedio-avanzado (indispensable); interés y conocimientos en programación.",
+      stack: ["JavaScript", "Google Apps Script", "Power Platform", "AppSheet", "Looker"],
+      fuente: "GM Careers (oficial, JR-202623844)",
+      url: "https://search-careers.gm.com/en/jobs/jr-202623844/becario-de-innovacion-y-desarrollo-de-soluciones-digitales/",
+      verificacion: "oficial",
+      encaje: "medio",
+      nota: "Desarrollo de herramientas digitales con JavaScript para manufactura: encaja con tu perfil. OJO: piden que te quede al menos un año para graduarte; pregunta si aceptan residencia de último semestre.",
+      encontrada: "2026-11-27"
+    },
+    {
+      id: "toshiba-gdl-qa-automation-intern",
+      titulo: "QA Automation Intern (Software Tester)",
+      empresa: "Toshiba Global Commerce Solutions",
+      ciudad: "Guadalajara, Jal.",
+      region: "Guadalajara (Jalisco)",
+      modalidad: "Presencial (oficina Guadalajara)",
+      inicio: "Por confirmar (publicada/actualizada 17 nov 2026)",
+      duracion: "No especificada",
+      pago: "No especificado",
+      requisitos: "Estudiante de últimos semestres o recién egresado de Computación/Ingeniería; inglés fluido; Python (scripts); Windows y Linux; Git/Jenkins deseable.",
+      stack: ["Python", "Testing automatizado", "Linux", "Git", "Jenkins"],
+      fuente: "Toshiba Careers (Greenhouse, oficial, ID 5251239007)",
+      url: "https://job-boards.greenhouse.io/toshibaglobalcommercesolutions/jobs/5251239007",
+      verificacion: "oficial",
+      encaje: "medio",
+      nota: "Pruebas automatizadas de software de punto de venta (POS). Acepta estudiantes de último año: encaja con 9° semestre. Es más Python/QA que C#.",
+      encontrada: "2026-11-27"
+    },
+    {
+      id: "capitalone-cdmx-tech-internship-2027", top: true,
+      titulo: "Technology Internship Program – Mexico – 2027",
+      empresa: "Capital One",
+      ciudad: "Ciudad de México",
+      region: "CDMX",
+      modalidad: "Híbrido, medio tiempo (24 h/semana)",
+      inicio: "Agosto 2027",
+      duracion: "8 meses (ago 2027 – mar 2028)",
+      pago: "Pagado (monto no publicado)",
+      requisitos: "Estudiando licenciatura con fecha de término entre dic 2027 y ago 2028; inglés intermedio-avanzado; CV en inglés; C#, .NET, ASP.NET, JavaScript, SQL, Java o Python.",
+      stack: ["C#", ".NET", "Java", "React", "SQL", "AWS"],
+      fuente: "Capital One Careers (Workday, oficial, R1004783, publicada 2 nov 2026)",
+      url: "https://capitalone.wd12.myworkdayjobs.com/Capital_One/job/Mexico-City-Mexico/Technology-Internship-Program---Mexico---2027_R1004783",
+      verificacion: "oficial",
+      encaje: "bajo",
+      nota: "No encaja en ene–jun 2027 y piden egresar entre dic 2027 y ago 2028. Si egresas antes, tu opción en Capital One es el Technology Development Program 2027 (ya registrado).",
+      encontrada: "2026-11-27"
+    },
+    {
+      id: "merida-remoto-becario-soporte-dev",
+      titulo: "Becario de Soporte y Desarrollo de Software (medio tiempo, remoto)",
+      empresa: "Desarrolladora de software a la medida (persona física, Mérida)",
+      ciudad: "Mérida, Yuc. (100% remoto)",
+      region: "Remoto",
+      modalidad: "Remoto, medio tiempo (15 h/semana, horario flexible)",
+      inicio: "Por confirmar (actualizada 19 nov 2026)",
+      duracion: "No especificada",
+      pago: "A convenir",
+      requisitos: "Estudiante activo de Software, Sistemas, Computación o afín (desde 4° semestre); conocimientos básicos de Python, JavaScript o SQL; buena comunicación con clientes.",
+      stack: ["Python", "JavaScript", "SQL", "Testing"],
+      fuente: "Computrabajo",
+      url: "https://mx.computrabajo.com/ofertas-de-trabajo/oferta-de-trabajo-de-becario-de-soporte-y-desarrollo-de-software-medio-tiempo-completamente-remoto-estudiantes-en-merida-C7D0F7C69F7A5EBD61373E686DCF3405",
+      verificacion: "agregador",
+      encaje: "medio",
+      nota: "Remoto (puedes hacerlo desde Zacatecas), pero son solo 15 h/semana: confirma si alcanza las horas que pide tu residencia. Empieza en soporte/testing y luego pasa a desarrollo.",
+      encontrada: "2026-11-27"
     }
   ]
 };
